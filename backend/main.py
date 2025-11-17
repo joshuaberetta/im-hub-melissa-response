@@ -4,6 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 import yaml
 import os
 from datetime import datetime, timedelta
@@ -12,16 +13,32 @@ from dotenv import load_dotenv
 from pathlib import Path
 import feedparser
 import httpx
-from typing import Optional
+from typing import Optional, List
 import frontmatter
 import markdown
 import re
 from email.utils import formatdate
 import time
 
+# Import database
+from database import (
+    init_db, 
+    get_db, 
+    WhatsAppGroup as DBWhatsAppGroup,
+    Resource as DBResource,
+    ContactSubmission as DBContactSubmission,
+    seed_initial_data
+)
+
 load_dotenv()
 
 app = FastAPI(title="IM Hub API")
+
+# Initialize database on startup
+@app.on_event("startup")
+def startup_event():
+    init_db()
+    seed_initial_data()
 
 # CORS configuration
 app.add_middleware(
@@ -56,6 +73,98 @@ class TokenResponse(BaseModel):
 
 class ContentData(BaseModel):
     sections: list
+
+
+# Database models for API
+class WhatsAppGroupCreate(BaseModel):
+    name: str
+    sector: str
+    description: str
+    link: str
+    contact_name: Optional[str] = None
+    contact_email: Optional[str] = None
+
+
+class WhatsAppGroupUpdate(BaseModel):
+    name: Optional[str] = None
+    sector: Optional[str] = None
+    description: Optional[str] = None
+    link: Optional[str] = None
+    contact_name: Optional[str] = None
+    contact_email: Optional[str] = None
+
+
+class WhatsAppGroupResponse(BaseModel):
+    id: int
+    name: str
+    sector: str
+    description: str
+    link: str
+    contact_name: Optional[str] = None
+    contact_email: Optional[str] = None
+    approved: bool
+    deleted: bool
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ResourceCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    url: str
+    category: Optional[str] = None
+    sector: Optional[str] = None
+    submitted_by: Optional[str] = None
+    email: Optional[str] = None
+
+
+class ResourceResponse(BaseModel):
+    id: int
+    title: str
+    description: Optional[str] = None
+    url: str
+    category: Optional[str] = None
+    sector: Optional[str] = None
+    submitted_by: Optional[str] = None
+    email: Optional[str] = None
+    approved: bool
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ContactSubmissionCreate(BaseModel):
+    organization: str
+    focal_point_name: str
+    email: str
+    phone: Optional[str] = None
+    sector: Optional[str] = None
+    role: Optional[str] = None
+    location: Optional[str] = None
+    additional_info: Optional[str] = None
+
+
+class ContactSubmissionResponse(BaseModel):
+    id: int
+    organization: str
+    focal_point_name: str
+    email: str
+    phone: Optional[str] = None
+    sector: Optional[str] = None
+    role: Optional[str] = None
+    location: Optional[str] = None
+    additional_info: Optional[str] = None
+    approved: bool
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True
 
 
 # Helper functions
@@ -241,6 +350,342 @@ def download_file(filename: str, username: str = Depends(verify_token)):
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+
+# WhatsApp Groups endpoints
+@app.get("/api/whatsapp-groups/deleted", response_model=List[WhatsAppGroupResponse])
+def get_deleted_whatsapp_groups(
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Get all soft-deleted WhatsApp groups (admin only)"""
+    groups = db.query(DBWhatsAppGroup).filter(DBWhatsAppGroup.deleted == True).order_by(DBWhatsAppGroup.updated_at.desc()).all()
+    return [group.to_dict() for group in groups]
+
+
+@app.get("/api/whatsapp-groups", response_model=List[WhatsAppGroupResponse])
+def get_whatsapp_groups(
+    approved_only: bool = True,
+    include_deleted: bool = False,
+    sector: Optional[str] = None,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Get all WhatsApp groups (optionally filter by approval status, deleted status, and sector)"""
+    query = db.query(DBWhatsAppGroup)
+    
+    # Filter out deleted groups unless specifically requested (for admin panel)
+    if not include_deleted:
+        query = query.filter(DBWhatsAppGroup.deleted == False)
+    
+    if approved_only:
+        query = query.filter(DBWhatsAppGroup.approved == True)
+    
+    if sector:
+        query = query.filter(DBWhatsAppGroup.sector == sector)
+    
+    groups = query.order_by(DBWhatsAppGroup.sector, DBWhatsAppGroup.name).all()
+    return [group.to_dict() for group in groups]
+
+
+@app.post("/api/whatsapp-groups", response_model=WhatsAppGroupResponse, status_code=status.HTTP_201_CREATED)
+def create_whatsapp_group(
+    group: WhatsAppGroupCreate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Register a new WhatsApp group (auto-approved)"""
+    db_group = DBWhatsAppGroup(
+        name=group.name,
+        sector=group.sector,
+        description=group.description,
+        link=group.link,
+        contact_name=group.contact_name,
+        contact_email=group.contact_email,
+        approved=True  # Auto-approved
+    )
+    
+    db.add(db_group)
+    db.commit()
+    db.refresh(db_group)
+    
+    return db_group.to_dict()
+
+
+@app.put("/api/whatsapp-groups/{group_id}", response_model=WhatsAppGroupResponse)
+def update_whatsapp_group(
+    group_id: int,
+    group_update: WhatsAppGroupUpdate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Update a WhatsApp group"""
+    group = db.query(DBWhatsAppGroup).filter(DBWhatsAppGroup.id == group_id).first()
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    
+    # Update only provided fields
+    if group_update.name is not None:
+        group.name = group_update.name
+    if group_update.sector is not None:
+        group.sector = group_update.sector
+    if group_update.description is not None:
+        group.description = group_update.description
+    if group_update.link is not None:
+        group.link = group_update.link
+    if group_update.contact_name is not None:
+        group.contact_name = group_update.contact_name
+    if group_update.contact_email is not None:
+        group.contact_email = group_update.contact_email
+    
+    group.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(group)
+    
+    return group.to_dict()
+
+
+@app.patch("/api/whatsapp-groups/{group_id}/approve")
+def approve_whatsapp_group(
+    group_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Approve a WhatsApp group (admin only)"""
+    group = db.query(DBWhatsAppGroup).filter(DBWhatsAppGroup.id == group_id).first()
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    
+    group.approved = True
+    group.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": "Group approved", "id": group_id}
+
+
+@app.delete("/api/whatsapp-groups/{group_id}")
+def delete_whatsapp_group(
+    group_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Soft delete a WhatsApp group (hides from view, requires admin to permanently delete)"""
+    group = db.query(DBWhatsAppGroup).filter(DBWhatsAppGroup.id == group_id).first()
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    
+    group.deleted = True
+    group.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": "Group marked for deletion", "id": group_id}
+
+
+@app.delete("/api/whatsapp-groups/{group_id}/permanent")
+def permanently_delete_whatsapp_group(
+    group_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Permanently delete a WhatsApp group (admin only)"""
+    group = db.query(DBWhatsAppGroup).filter(DBWhatsAppGroup.id == group_id).first()
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    
+    db.delete(group)
+    db.commit()
+    
+    return {"message": "Group permanently deleted", "id": group_id}
+
+
+@app.patch("/api/whatsapp-groups/{group_id}/restore")
+def restore_whatsapp_group(
+    group_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Restore a soft-deleted WhatsApp group (admin only)"""
+    group = db.query(DBWhatsAppGroup).filter(DBWhatsAppGroup.id == group_id).first()
+    
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    
+    group.deleted = False
+    group.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": "Group restored", "id": group_id}
+
+
+# Resources endpoints
+@app.get("/api/resources-db", response_model=List[ResourceResponse])
+def get_resources_db(
+    approved_only: bool = True,
+    category: Optional[str] = None,
+    sector: Optional[str] = None,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Get all user-submitted resources"""
+    query = db.query(DBResource)
+    
+    if approved_only:
+        query = query.filter(DBResource.approved == True)
+    
+    if category:
+        query = query.filter(DBResource.category == category)
+    
+    if sector:
+        query = query.filter(DBResource.sector == sector)
+    
+    resources = query.order_by(DBResource.created_at.desc()).all()
+    return [resource.to_dict() for resource in resources]
+
+
+@app.post("/api/resources-db", response_model=ResourceResponse, status_code=status.HTTP_201_CREATED)
+def create_resource(
+    resource: ResourceCreate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Submit a new resource (requires moderation approval)"""
+    db_resource = DBResource(
+        title=resource.title,
+        description=resource.description,
+        url=resource.url,
+        category=resource.category,
+        sector=resource.sector,
+        submitted_by=resource.submitted_by,
+        email=resource.email,
+        approved=False
+    )
+    
+    db.add(db_resource)
+    db.commit()
+    db.refresh(db_resource)
+    
+    return db_resource.to_dict()
+
+
+@app.patch("/api/resources-db/{resource_id}/approve")
+def approve_resource(
+    resource_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Approve a resource (admin only)"""
+    resource = db.query(DBResource).filter(DBResource.id == resource_id).first()
+    
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    
+    resource.approved = True
+    resource.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": "Resource approved", "id": resource_id}
+
+
+@app.delete("/api/resources-db/{resource_id}")
+def delete_resource(
+    resource_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Delete a resource (admin only)"""
+    resource = db.query(DBResource).filter(DBResource.id == resource_id).first()
+    
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    
+    db.delete(resource)
+    db.commit()
+    
+    return {"message": "Resource deleted", "id": resource_id}
+
+
+# Contact submissions endpoints
+@app.get("/api/contact-submissions", response_model=List[ContactSubmissionResponse])
+def get_contact_submissions(
+    approved_only: bool = True,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Get all contact submissions"""
+    query = db.query(DBContactSubmission)
+    
+    if approved_only:
+        query = query.filter(DBContactSubmission.approved == True)
+    
+    submissions = query.order_by(DBContactSubmission.created_at.desc()).all()
+    return [sub.to_dict() for sub in submissions]
+
+
+@app.post("/api/contact-submissions", response_model=ContactSubmissionResponse, status_code=status.HTTP_201_CREATED)
+def create_contact_submission(
+    submission: ContactSubmissionCreate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Submit contact information (requires moderation approval)"""
+    db_submission = DBContactSubmission(
+        organization=submission.organization,
+        focal_point_name=submission.focal_point_name,
+        email=submission.email,
+        phone=submission.phone,
+        sector=submission.sector,
+        role=submission.role,
+        location=submission.location,
+        additional_info=submission.additional_info,
+        approved=False
+    )
+    
+    db.add(db_submission)
+    db.commit()
+    db.refresh(db_submission)
+    
+    return db_submission.to_dict()
+
+
+@app.patch("/api/contact-submissions/{submission_id}/approve")
+def approve_contact_submission(
+    submission_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Approve a contact submission (admin only)"""
+    submission = db.query(DBContactSubmission).filter(DBContactSubmission.id == submission_id).first()
+    
+    if not submission:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    
+    submission.approved = True
+    submission.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": "Contact submission approved", "id": submission_id}
+
+
+@app.delete("/api/contact-submissions/{submission_id}")
+def delete_contact_submission(
+    submission_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Delete a contact submission (admin only)"""
+    submission = db.query(DBContactSubmission).filter(DBContactSubmission.id == submission_id).first()
+    
+    if not submission:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    
+    db.delete(submission)
+    db.commit()
+    
+    return {"message": "Contact submission deleted", "id": submission_id}
 
 
 @app.get("/api/mapaction-feed")
@@ -476,24 +921,33 @@ def get_announcements_rss():
 
 # Serve frontend static files in production
 frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+print(f"Looking for frontend at: {frontend_dist}")
+print(f"Frontend dist exists: {frontend_dist.exists()}")
 if frontend_dist.exists():
+    print(f"Frontend dist contents: {list(frontend_dist.iterdir())}")
     app.mount("/assets", StaticFiles(directory=str(frontend_dist / "assets")), name="assets")
     
     @app.get("/")
     async def serve_root():
         """Serve frontend index.html at root"""
-        return FileResponse(frontend_dist / "index.html")
+        index_path = frontend_dist / "index.html"
+        print(f"Serving index.html from: {index_path}, exists: {index_path.exists()}")
+        return FileResponse(index_path)
     
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
         """Serve frontend for all non-API routes"""
-        if full_path.startswith("api/"):
+        if full_path.startswith("api/") or full_path.startswith("feeds/"):
             raise HTTPException(status_code=404, detail="API endpoint not found")
         
         file_path = frontend_dist / full_path
         if file_path.is_file():
             return FileResponse(file_path)
         return FileResponse(frontend_dist / "index.html")
+else:
+    print(f"WARNING: Frontend dist directory not found at {frontend_dist}")
+    print(f"Current working directory: {Path.cwd()}")
+    print(f"__file__ location: {Path(__file__).resolve()}")
 
 
 if __name__ == "__main__":

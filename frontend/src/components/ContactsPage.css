@@ -107,6 +107,28 @@
   .groups-table td {
     padding: 0.5rem;
   }
+
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .add-group-button {
+    width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .submit-button {
+    width: 100%;
+  }
 }
 
 /* WhatsApp Groups Section */
@@ -122,6 +144,204 @@
   margin-bottom: 0.5rem;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid #E6F2FA;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.add-group-button {
+  padding: 0.75rem 1.5rem;
+  background-color: #026CB6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-group-button:hover {
+  background-color: #025195;
+}
+
+/* Add Group Form */
+.add-group-form {
+  background-color: #F8F9FA;
+  border: 1px solid #CCCCCC;
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.add-group-form h3 {
+  color: #026CB6;
+  font-size: 1.25rem;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  color: #262626;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.65rem;
+  border: 1px solid #CCCCCC;
+  border-radius: 2px;
+  font-size: 1rem;
+  font-family: inherit;
+  background-color: white;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #026CB6;
+}
+
+.form-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.submit-button {
+  padding: 0.75rem 2rem;
+  background-color: #026CB6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: #025195;
+}
+
+.submit-button:disabled {
+  background-color: #CCCCCC;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  padding: 0.75rem 2rem;
+  background-color: #999999;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-button:hover {
+  background-color: #777777;
+}
+
+.edit-button,
+.delete-button {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 2px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: 0.5rem;
+}
+
+.edit-button {
+  background-color: #FFB703;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #FB8500;
+}
+
+.delete-button {
+  background-color: #DC3545;
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #C82333;
+}
+
+.edit-button.small,
+.delete-button.small {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.group-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.form-note {
+  color: #999999;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.message {
+  padding: 1rem 1.25rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.message.success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: #999999;
+  font-style: italic;
 }
 
 .controls {

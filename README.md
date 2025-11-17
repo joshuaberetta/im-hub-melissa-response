@@ -6,6 +6,9 @@ Full-stack application with FastAPI backend and React TypeScript frontend, featu
 
 - **FastAPI Backend**: Python REST API with JWT authentication
 - **React TypeScript Frontend**: Modern SPA with React Router
+- **SQLite Database**: Persistent storage for user-submitted content
+- **User Submissions**: Register WhatsApp groups, resources, and contacts
+- **Content Moderation**: Admin panel for reviewing and approving submissions
 - **YAML Content Management**: Easy-to-update content configuration
 - **OCHA Styling**: Professional ReliefWeb-inspired design
 - **Embedded Dashboards**: Power BI and Kobo form integration
@@ -18,11 +21,17 @@ Full-stack application with FastAPI backend and React TypeScript frontend, featu
 im-hub/
 ├── backend/
 │   ├── main.py              # FastAPI application
+│   ├── database.py          # SQLAlchemy models and database setup
+│   ├── imhub.db             # SQLite database (auto-generated)
 │   ├── content.yaml         # Content configuration
+│   ├── DATABASE.md          # Database documentation
 │   └── requirements.txt     # Python dependencies
 ├── frontend/
 │   ├── src/
 │   │   ├── components/      # React components
+│   │   │   ├── ContactsPage.tsx  # WhatsApp groups with submission form
+│   │   │   ├── AdminPage.tsx     # Admin moderation panel
+│   │   │   └── ...
 │   │   ├── App.tsx          # Main app component
 │   │   └── main.tsx         # Entry point
 │   ├── package.json
@@ -65,6 +74,25 @@ python main.py
 ```
 
 The API will be available at http://localhost:8000
+
+The database will be automatically initialized on first run.
+
+### Database Management
+
+The SQLite database (`backend/imhub.db`) is automatically created when you start the backend.
+
+To manually initialize or reset the database:
+```bash
+cd backend
+python database.py
+```
+
+This will:
+- Create the database if it doesn't exist
+- Create all tables
+- Seed initial WhatsApp groups (if empty)
+
+For more information, see `backend/DATABASE.md`.
 
 ### Frontend Setup
 
@@ -180,21 +208,51 @@ Rebuild the frontend and redeploy.
 
 ## API Endpoints
 
+### Authentication
 - `POST /api/auth/login` - User authentication
 - `GET /api/auth/verify` - Verify JWT token
+
+### Content
 - `GET /api/content` - Get YAML content (requires auth)
-- `GET /api/powerbi-url` - Get Power BI URL (requires auth)
-- `GET /api/kobo-url` - Get Kobo form URL (requires auth)
+- `GET /api/login-content` - Get login page content (public)
+- `GET /api/navigation` - Get navigation items (requires auth)
+- `GET /api/announcements` - Get announcements (requires auth)
+- `GET /feeds/announcements.xml` - RSS feed for announcements (public)
+
+### WhatsApp Groups (Database)
+- `GET /api/whatsapp-groups` - List approved groups (requires auth)
+- `POST /api/whatsapp-groups` - Submit new group (requires auth)
+- `PATCH /api/whatsapp-groups/{id}/approve` - Approve group (admin)
+- `DELETE /api/whatsapp-groups/{id}` - Delete group (admin)
+
+### Resources (Database)
+- `GET /api/resources-db` - List approved resources (requires auth)
+- `POST /api/resources-db` - Submit new resource (requires auth)
+- `PATCH /api/resources-db/{id}/approve` - Approve resource (admin)
+- `DELETE /api/resources-db/{id}` - Delete resource (admin)
+
+### Contact Submissions (Database)
+- `GET /api/contact-submissions` - List approved contacts (requires auth)
+- `POST /api/contact-submissions` - Submit contact info (requires auth)
+- `PATCH /api/contact-submissions/{id}/approve` - Approve contact (admin)
+- `DELETE /api/contact-submissions/{id}` - Delete contact (admin)
+
+### Other
 - `GET /api/health` - Health check
+- `GET /api/mapaction-feed` - Fetch MapAction RSS feed (requires auth)
 
 ## Technology Stack
 
 ### Backend
 - FastAPI - Modern Python web framework
+- SQLAlchemy - SQL toolkit and ORM
+- SQLite - Embedded database
 - Pydantic - Data validation
 - PyJWT - JWT token handling
 - PyYAML - YAML configuration
 - Uvicorn - ASGI server
+- python-frontmatter - Markdown parsing
+- feedparser - RSS feed parsing
 
 ### Frontend
 - React 18 - UI library
@@ -209,6 +267,55 @@ Rebuild the frontend and redeploy.
 - Use strong SECRET_KEY in production
 - Configure CORS properly for production
 - Use HTTPS in production (Render provides this automatically)
+
+## User Features
+
+### For All Users (Authenticated)
+
+1. **Submit WhatsApp Groups**
+   - Navigate to Contacts page
+   - Click "Add Group" button
+   - Fill in group details (name, sector, description, link)
+   - Submit for admin approval
+
+2. **Browse Approved Content**
+   - View approved WhatsApp groups
+   - Search and filter by sector
+   - Switch between card and table views
+
+### For Administrators
+
+1. **Access Admin Panel**
+   - Navigate to Admin page in navigation
+   - View pending and approved submissions
+
+2. **Moderate Submissions**
+   - Review pending WhatsApp groups, resources, and contacts
+   - Approve legitimate submissions
+   - Delete spam or inappropriate content
+
+3. **Manage Content**
+   - Edit `backend/content.yaml` for static content
+   - Add/edit announcements in `backend/announcements/`
+   - Upload files to `backend/files/`
+
+## Database Features
+
+The application uses SQLite for persistent storage of user-submitted content:
+
+- **WhatsApp Groups**: Coordination groups for humanitarian sectors
+- **Resources**: User-submitted links, tools, and documents
+- **Contact Submissions**: Contact information for the directory
+
+All submissions require admin approval before appearing publicly. See `backend/DATABASE.md` for detailed documentation.
+
+## Content Moderation Workflow
+
+1. User submits content (WhatsApp group, resource, or contact)
+2. Content saved to database with `approved=False`
+3. Admin reviews in Admin Panel
+4. Admin approves or deletes submission
+5. Approved content appears to all users
 
 ## Customization
 

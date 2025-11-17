@@ -1,0 +1,225 @@
+"""
+Database models and configuration for IM Hub
+Using SQLAlchemy ORM with SQLite
+"""
+
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean
+from sqlalchemy.orm import sessionmaker, declarative_base
+from datetime import datetime
+from pathlib import Path
+
+# Database file location
+DB_PATH = Path(__file__).parent / "imhub.db"
+DATABASE_URL = f"sqlite:///{DB_PATH}"
+
+# Create engine
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False}  # Needed for SQLite
+)
+
+# Create session factory
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base class for models
+Base = declarative_base()
+
+
+# Models
+class WhatsAppGroup(Base):
+    """WhatsApp coordination groups"""
+    __tablename__ = "whatsapp_groups"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False)
+    sector = Column(String(100), nullable=False)
+    description = Column(Text, nullable=False)
+    link = Column(String(500), nullable=False)
+    contact_name = Column(String(200))  # Person who registered the group
+    contact_email = Column(String(200))  # Contact email
+    approved = Column(Boolean, default=False)  # For moderation
+    deleted = Column(Boolean, default=False)  # Soft delete flag
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "sector": self.sector,
+            "description": self.description,
+            "link": self.link,
+            "contact_name": self.contact_name,
+            "contact_email": self.contact_email,
+            "approved": self.approved,
+            "deleted": self.deleted,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class Resource(Base):
+    """User-submitted resources and links"""
+    __tablename__ = "resources"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    description = Column(Text)
+    url = Column(String(500), nullable=False)
+    category = Column(String(100))  # e.g., "guideline", "tool", "template", "reference"
+    sector = Column(String(100))  # Optional sector association
+    submitted_by = Column(String(200))  # Name of person who submitted
+    email = Column(String(200))  # Contact email
+    approved = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "url": self.url,
+            "category": self.category,
+            "sector": self.sector,
+            "submitted_by": self.submitted_by,
+            "email": self.email,
+            "approved": self.approved,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class ContactSubmission(Base):
+    """Contact information submissions"""
+    __tablename__ = "contact_submissions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    organization = Column(String(200), nullable=False)
+    focal_point_name = Column(String(200), nullable=False)
+    email = Column(String(200), nullable=False)
+    phone = Column(String(50))
+    sector = Column(String(100))
+    role = Column(String(200))
+    location = Column(String(200))
+    additional_info = Column(Text)
+    approved = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        return {
+            "id": self.id,
+            "organization": self.organization,
+            "focal_point_name": self.focal_point_name,
+            "email": self.email,
+            "phone": self.phone,
+            "sector": self.sector,
+            "role": self.role,
+            "location": self.location,
+            "additional_info": self.additional_info,
+            "approved": self.approved,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+# Database initialization
+def init_db():
+    """Create all tables in the database"""
+    Base.metadata.create_all(bind=engine)
+    print(f"Database initialized at {DB_PATH}")
+
+
+# Dependency for getting DB session
+def get_db():
+    """Dependency to get database session"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# Seed some initial data for testing
+def seed_initial_data():
+    """Add some initial WhatsApp groups for testing"""
+    db = SessionLocal()
+    try:
+        # Check if we already have data
+        existing_count = db.query(WhatsAppGroup).count()
+        if existing_count > 0:
+            print(f"Database already has {existing_count} WhatsApp groups")
+            return
+        
+        # Add initial groups
+        initial_groups = [
+            WhatsAppGroup(
+                name="IM Jamaica Coordination",
+                sector="Cross-Sector",
+                description="General coordination for information management across all sectors",
+                link="https://chat.whatsapp.com/example1",
+                approved=True
+            ),
+            WhatsAppGroup(
+                name="Shelter Cluster IM",
+                sector="Shelter",
+                description="Information management for shelter sector activities and data collection",
+                link="https://chat.whatsapp.com/example2",
+                approved=True
+            ),
+            WhatsAppGroup(
+                name="WASH Data Collection",
+                sector="WASH",
+                description="WASH sector data collection coordination and field updates",
+                link="https://chat.whatsapp.com/example3",
+                approved=True
+            ),
+            WhatsAppGroup(
+                name="Health Assessments",
+                sector="Health",
+                description="Coordination for health assessments and medical facility data",
+                link="https://chat.whatsapp.com/example4",
+                approved=True
+            ),
+            WhatsAppGroup(
+                name="Protection Monitoring",
+                sector="Protection",
+                description="Protection monitoring and GBV reporting coordination",
+                link="https://chat.whatsapp.com/example5",
+                approved=True
+            ),
+            WhatsAppGroup(
+                name="Education in Emergency",
+                sector="Education",
+                description="Education cluster data sharing and school assessment coordination",
+                link="https://chat.whatsapp.com/example6",
+                approved=True
+            ),
+            WhatsAppGroup(
+                name="Food Security Monitoring",
+                sector="Food Security",
+                description="Food security assessments and distribution tracking",
+                link="https://chat.whatsapp.com/example7",
+                approved=True
+            ),
+        ]
+        
+        db.add_all(initial_groups)
+        db.commit()
+        print(f"Seeded {len(initial_groups)} WhatsApp groups")
+        
+    except Exception as e:
+        print(f"Error seeding data: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+
+if __name__ == "__main__":
+    # Initialize database and seed data when run directly
+    init_db()
+    seed_initial_data()

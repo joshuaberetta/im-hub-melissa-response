@@ -40,6 +40,8 @@ navigation:
         path: "/forms/contact"
       - label: "Direct Observation Form"
         path: "/forms/direct-observation"
+      - label: "Drone Request Form"
+        path: "/forms/drone-request"
       - label: "ETC Assessment Form"
         path: "/forms/etc-assessment"
       - label: "Assessment Registration"
@@ -71,6 +73,10 @@ navigation:
     path: "/resources"
     type: "link"
 
+  - label: "Admin"
+    path: "/admin"
+    type: "link"
+
 # Home page content
 welcome:
   heading: "Welcome to the Information Management Hub"
@@ -90,6 +96,9 @@ sections:
         internal: true
       - name: "ReliefWeb - Hurricane Melissa"
         url: "https://response.reliefweb.int/latin-america-and-caribbean/hurricane-melissa"
+        internal: false
+      - name: "Common Operational Datasets (CODs)"
+        url: "https://data.humdata.org/group/jam?sort=last_modified+desc&ext_page_size=25&cod_level=cod-standard&cod_level=cod-enhanced"
         internal: false
       - name: "Coordination Architecture"
         url: "https://reliefweb.int/report/jamaica/jamaica-hurricane-melissa-coordination-structure-alignment-emergency-inter-agency-sectors-and-government-7-november-2025"
@@ -140,6 +149,10 @@ forms:
     title: "Direct Observation Form"
     description: "Report access and destruction while in the field."
     embedUrl: "https://ee.kobotoolbox.org/i/e6mxVKSu"
+  drone-request:
+    title: "Drone Request Form"
+    description: "Request drone support for assessments and mapping."
+    embedUrl: "https://ee.kobotoolbox.org/i/111iO9hB"
   assessment-registration:
     title: "Assessment Form Registration"
     description: "Register assessments that are ongoing in the field."

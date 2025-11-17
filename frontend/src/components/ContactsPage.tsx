@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import './ContactsPage.css'
 
 interface WhatsAppGroup {
@@ -7,6 +7,12 @@ interface WhatsAppGroup {
   sector: string
   description: string
   link: string
+  contact_name?: string
+  contact_email?: string
+  approved: boolean
+  deleted: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 export default function ContactsPage() {
@@ -16,65 +22,218 @@ export default function ContactsPage() {
   const [sectorFilter, setSectorFilter] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
+  const [whatsappGroups, setWhatsappGroups] = useState<WhatsAppGroup[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    sector: '',
+    description: '',
+    link: '',
+    contact_name: '',
+    contact_email: ''
+  })
+  const [submitting, setSubmitting] = useState(false)
+  const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [editingId, setEditingId] = useState<number | null>(null)
 
-  // WhatsApp groups data
-  const whatsappGroups: WhatsAppGroup[] = [
-    {
-      id: 1,
-      name: "IM Jamaica Coordination",
-      sector: "Cross-Sector",
-      description: "General coordination for information management across all sectors",
-      link: "https://chat.whatsapp.com/example1"
-    },
-    {
-      id: 2,
-      name: "Shelter Cluster IM",
-      sector: "Shelter",
-      description: "Information management for shelter sector activities and data collection",
-      link: "https://chat.whatsapp.com/example2"
-    },
-    {
-      id: 3,
-      name: "WASH Data Collection",
-      sector: "WASH",
-      description: "WASH sector data collection coordination and field updates",
-      link: "https://chat.whatsapp.com/example3"
-    },
-    {
-      id: 4,
-      name: "Health Assessments",
-      sector: "Health",
-      description: "Coordination for health assessments and medical facility data",
-      link: "https://chat.whatsapp.com/example4"
-    },
-    {
-      id: 5,
-      name: "Protection Monitoring",
-      sector: "Protection",
-      description: "Protection monitoring and GBV reporting coordination",
-      link: "https://chat.whatsapp.com/example5"
-    },
-    {
-      id: 6,
-      name: "Education in Emergency",
-      sector: "Education",
-      description: "Education cluster data sharing and school assessment coordination",
-      link: "https://chat.whatsapp.com/example6"
-    },
-    {
-      id: 7,
-      name: "Food Security Monitoring",
-      sector: "Food Security",
-      description: "Food security assessments and distribution tracking",
-      link: "https://chat.whatsapp.com/example7"
+  // Fetch WhatsApp groups from API
+  useEffect(() => {
+    fetchGroups()
+  }, [])
+
+  const fetchGroups = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      console.log('Fetching groups with token:', token ? 'exists' : 'missing')
+      const response = await fetch('/api/whatsapp-groups', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      console.log('Response status:', response.status, response.ok)
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Groups fetched:', data.length, 'groups')
+        setWhatsappGroups(data)
+        setLoading(false)
+      } else {
+        console.error('Failed to fetch WhatsApp groups, status:', response.status)
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('Error fetching WhatsApp groups:', error)
+      setLoading(false)
     }
-  ]
+  }
+
+  const handleSubmitGroup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    setSubmitMessage(null)
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/whatsapp-groups', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      })
+
+      if (response.ok) {
+        setSubmitMessage({
+          type: 'success',
+          text: 'WhatsApp group added successfully!'
+        });
+        setFormData({
+          name: '',
+          sector: '',
+          description: '',
+          link: '',
+          contact_name: '',
+          contact_email: ''
+        })
+        setShowAddForm(false)
+        // Refresh the list to show the new group
+        fetchGroups()
+        setTimeout(() => setSubmitMessage(null), 5000)
+      } else {
+        const error = await response.json()
+        setSubmitMessage({
+          type: 'error',
+          text: error.detail || 'Failed to submit group. Please try again.'
+        })
+      }
+    } catch (error) {
+      setSubmitMessage({
+        type: 'error',
+        text: 'Network error. Please try again.'
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleEditGroup = (group: WhatsAppGroup) => {
+    setFormData({
+      name: group.name,
+      sector: group.sector,
+      description: group.description,
+      link: group.link,
+      contact_name: group.contact_name || '',
+      contact_email: group.contact_email || ''
+    })
+    setEditingId(group.id)
+    setShowAddForm(true)
+  }
+
+  const handleUpdateGroup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingId) return
+    
+    setSubmitting(true)
+    setSubmitMessage(null)
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/whatsapp-groups/${editingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      })
+
+      if (response.ok) {
+        setSubmitMessage({
+          type: 'success',
+          text: 'WhatsApp group updated successfully!'
+        });
+        setFormData({
+          name: '',
+          sector: '',
+          description: '',
+          link: '',
+          contact_name: '',
+          contact_email: ''
+        })
+        setShowAddForm(false)
+        setEditingId(null)
+        fetchGroups()
+        setTimeout(() => setSubmitMessage(null), 5000)
+      } else {
+        const error = await response.json()
+        setSubmitMessage({
+          type: 'error',
+          text: error.detail || 'Failed to update group. Please try again.'
+        })
+      }
+    } catch (error) {
+      setSubmitMessage({
+        type: 'error',
+        text: 'Network error. Please try again.'
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDeleteGroup = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this group? It will be hidden and require admin approval for permanent deletion.')) return
+    
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/whatsapp-groups/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        setSubmitMessage({
+          type: 'success',
+          text: 'Group marked for deletion. Admin will review.'
+        })
+        fetchGroups()
+        setTimeout(() => setSubmitMessage(null), 5000)
+      } else {
+        setSubmitMessage({
+          type: 'error',
+          text: 'Failed to delete group. Please try again.'
+        })
+      }
+    } catch (error) {
+      setSubmitMessage({
+        type: 'error',
+        text: 'Network error. Please try again.'
+      })
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setShowAddForm(false)
+    setFormData({
+      name: '',
+      sector: '',
+      description: '',
+      link: '',
+      contact_name: '',
+      contact_email: ''
+    })
+  }
 
   // Get unique sectors for filter
   const sectors = useMemo(() => {
     const uniqueSectors = Array.from(new Set(whatsappGroups.map(g => g.sector)))
     return uniqueSectors.sort()
-  }, [])
+  }, [whatsappGroups])
 
   // Filter groups
   const filteredGroups = useMemo(() => {
@@ -102,7 +261,7 @@ export default function ContactsPage() {
       }
       return a.name.localeCompare(b.name)
     })
-  }, [sectorFilter, searchQuery])
+  }, [whatsappGroups, sectorFilter, searchQuery])
 
   return (
     <div className="contacts-page">
@@ -135,8 +294,121 @@ export default function ContactsPage() {
 
       {/* WhatsApp Groups Section */}
       <div className="whatsapp-section">
-        <h2>WhatsApp Coordination Groups</h2>
-        <p className="description">Join relevant WhatsApp groups for sector coordination and information sharing</p>
+        <div className="section-header">
+          <div>
+            <h2>WhatsApp Coordination Groups</h2>
+            <p className="description">Join relevant WhatsApp groups for sector coordination and information sharing</p>
+          </div>
+          <button 
+            className="add-group-button"
+            onClick={() => setShowAddForm(!showAddForm)}
+          >
+            {showAddForm ? 'Cancel' : '+ Add Group'}
+          </button>
+        </div>
+
+        {submitMessage && (
+          <div className={`message ${submitMessage.type}`}>
+            {submitMessage.text}
+          </div>
+        )}
+
+        {showAddForm && (
+          <div className="add-group-form">
+            <h3>{editingId ? 'Edit WhatsApp Group' : 'Register a WhatsApp Group'}</h3>
+            <form onSubmit={editingId ? handleUpdateGroup : handleSubmitGroup}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="group-name">Group Name *</label>
+                  <input
+                    id="group-name"
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="e.g., Health Cluster IM"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="group-sector">Sector *</label>
+                  <select
+                    id="group-sector"
+                    required
+                    value={formData.sector}
+                    onChange={(e) => setFormData({...formData, sector: e.target.value})}
+                  >
+                    <option value="">Select a sector</option>
+                    <option value="Cross-Sector">Cross-Sector</option>
+                    <option value="Shelter">Shelter</option>
+                    <option value="WASH">WASH</option>
+                    <option value="Health">Health</option>
+                    <option value="Protection">Protection</option>
+                    <option value="Education">Education</option>
+                    <option value="Food Security">Food Security</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-group">
+                <label htmlFor="group-description">Description *</label>
+                <textarea
+                  id="group-description"
+                  required
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  placeholder="Brief description of the group's purpose"
+                  rows={3}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="group-link">WhatsApp Group Link *</label>
+                <input
+                  id="group-link"
+                  type="url"
+                  required
+                  value={formData.link}
+                  onChange={(e) => setFormData({...formData, link: e.target.value})}
+                  placeholder="https://chat.whatsapp.com/..."
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="contact-name">Your Name (optional)</label>
+                  <input
+                    id="contact-name"
+                    type="text"
+                    value={formData.contact_name}
+                    onChange={(e) => setFormData({...formData, contact_name: e.target.value})}
+                    placeholder="Group administrator name"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="contact-email">Your Email (optional)</label>
+                  <input
+                    id="contact-email"
+                    type="email"
+                    value={formData.contact_email}
+                    onChange={(e) => setFormData({...formData, contact_email: e.target.value})}
+                    placeholder="your.email@example.org"
+                  />
+                </div>
+              </div>
+              <div className="form-actions">
+                <button type="submit" disabled={submitting} className="submit-button">
+                  {submitting ? 'Saving...' : editingId ? 'Update Group' : 'Add Group'}
+                </button>
+                {editingId && (
+                  <button type="button" onClick={handleCancelEdit} className="cancel-button">
+                    Cancel
+                  </button>
+                )}
+                <p className="form-note">
+                  * Required fields
+                </p>
+              </div>
+            </form>
+          </div>
+        )}
 
         <div className="controls">
           <div className="filters">
@@ -178,53 +450,21 @@ export default function ContactsPage() {
           </div>
         </div>
 
-        {viewMode === 'cards' ? (
-          <div className="groups-grid">
-            {filteredGroups.length > 0 ? (
-              filteredGroups.map(group => (
-                <div key={group.id} className="group-card">
-                  <div className="group-header">
-                    <h3>{group.name}</h3>
-                    <span className="sector-tag">{group.sector}</span>
-                  </div>
-                  <p className="group-description">{group.description}</p>
-                  <a 
-                    href={group.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="join-button"
-                  >
-                    Join Group ↗
-                  </a>
-                </div>
-              ))
-            ) : (
-              <div className="no-results">
-                No groups found matching your criteria
-              </div>
-            )}
-          </div>
+        {loading ? (
+          <div className="loading">Loading groups...</div>
         ) : (
-          <div className="table-container">
-            <table className="groups-table">
-              <thead>
-                <tr>
-                  <th>Group Name</th>
-                  <th>Sector</th>
-                  <th>Description</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
+          <>
+            {viewMode === 'cards' ? (
+              <div className="groups-grid">
                 {filteredGroups.length > 0 ? (
                   filteredGroups.map(group => (
-                    <tr key={group.id}>
-                      <td className="group-name">{group.name}</td>
-                      <td>
+                    <div key={group.id} className="group-card">
+                      <div className="group-header">
+                        <h3>{group.name}</h3>
                         <span className="sector-tag">{group.sector}</span>
-                      </td>
-                      <td className="group-description">{group.description}</td>
-                      <td className="action-cell">
+                      </div>
+                      <p className="group-description">{group.description}</p>
+                      <div className="group-actions">
                         <a 
                           href={group.link}
                           target="_blank"
@@ -233,24 +473,76 @@ export default function ContactsPage() {
                         >
                           Join Group ↗
                         </a>
-                      </td>
-                    </tr>
+                        <button onClick={() => handleEditGroup(group)} className="edit-button">
+                          Edit
+                        </button>
+                        <button onClick={() => handleDeleteGroup(group.id)} className="delete-button">
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan={4} className="no-results-table">
-                      No groups found matching your criteria
-                    </td>
-                  </tr>
+                  <div className="no-results">
+                    No groups found matching your criteria
+                  </div>
                 )}
-              </tbody>
-            </table>
-          </div>
-        )}
+              </div>
+            ) : (
+              <div className="table-container">
+                <table className="groups-table">
+                  <thead>
+                    <tr>
+                      <th>Group Name</th>
+                      <th>Sector</th>
+                      <th>Description</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredGroups.length > 0 ? (
+                      filteredGroups.map(group => (
+                        <tr key={group.id}>
+                          <td className="group-name">{group.name}</td>
+                          <td>
+                            <span className="sector-tag">{group.sector}</span>
+                          </td>
+                          <td className="group-description">{group.description}</td>
+                          <td className="action-cell">
+                            <a 
+                              href={group.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="join-button"
+                            >
+                              Join Group ↗
+                            </a>
+                            <button onClick={() => handleEditGroup(group)} className="edit-button small">
+                              Edit
+                            </button>
+                            <button onClick={() => handleDeleteGroup(group.id)} className="delete-button small">
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="no-results-table">
+                          No groups found matching your criteria
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-        <div className="results-count">
-          Showing {filteredGroups.length} of {whatsappGroups.length} groups
-        </div>
+            <div className="results-count">
+              Showing {filteredGroups.length} of {whatsappGroups.length} groups
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
