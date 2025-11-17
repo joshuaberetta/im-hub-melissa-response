@@ -479,6 +479,11 @@ frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
 if frontend_dist.exists():
     app.mount("/assets", StaticFiles(directory=str(frontend_dist / "assets")), name="assets")
     
+    @app.get("/")
+    async def serve_root():
+        """Serve frontend index.html at root"""
+        return FileResponse(frontend_dist / "index.html")
+    
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
         """Serve frontend for all non-API routes"""
