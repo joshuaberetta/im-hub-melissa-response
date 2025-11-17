@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import './ContactsPage.css'
 
 interface WhatsAppGroup {
@@ -36,10 +36,28 @@ export default function ContactsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [editingId, setEditingId] = useState<number | null>(null)
+  const [activeDropdown, setActiveDropdown] = useState<number | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   // Fetch WhatsApp groups from API
   useEffect(() => {
     fetchGroups()
+  }, [])
+
+  // Handle click outside dropdown to close it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setActiveDropdown(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [])
 
   const fetchGroups = async () => {
@@ -129,6 +147,11 @@ export default function ContactsPage() {
     })
     setEditingId(group.id)
     setShowAddForm(true)
+    setActiveDropdown(null)
+  }
+
+  const toggleDropdown = (groupId: number) => {
+    setActiveDropdown(activeDropdown === groupId ? null : groupId)
   }
 
   const handleUpdateGroup = async (e: React.FormEvent) => {
@@ -184,6 +207,7 @@ export default function ContactsPage() {
   }
 
   const handleDeleteGroup = async (id: number) => {
+    setActiveDropdown(null)
     if (!confirm('Are you sure you want to delete this group? It will be hidden and require admin approval for permanent deletion.')) return
     
     try {
@@ -262,6 +286,18 @@ export default function ContactsPage() {
       return a.name.localeCompare(b.name)
     })
   }, [whatsappGroups, sectorFilter, searchQuery])
+
+  // Pagination
+  const totalPages = Math.ceil(filteredGroups.length / itemsPerPage)
+  const paginatedGroups = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredGroups.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredGroups, currentPage, itemsPerPage])
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [sectorFilter, searchQuery])
 
   return (
     <div className="contacts-page">
@@ -456,8 +492,8 @@ export default function ContactsPage() {
           <>
             {viewMode === 'cards' ? (
               <div className="groups-grid">
-                {filteredGroups.length > 0 ? (
-                  filteredGroups.map(group => (
+                {paginatedGroups.length > 0 ? (
+                  paginatedGroups.map(group => (
                     <div key={group.id} className="group-card">
                       <div className="group-header">
                         <h3>{group.name}</h3>
@@ -473,12 +509,33 @@ export default function ContactsPage() {
                         >
                           Join Group ↗
                         </a>
-                        <button onClick={() => handleEditGroup(group)} className="edit-button">
-                          Edit
-                        </button>
-                        <button onClick={() => handleDeleteGroup(group.id)} className="delete-button">
-                          Delete
-                        </button>
+                        <div className="actions-dropdown" ref={activeDropdown === group.id ? dropdownRef : null}>
+                          <button 
+                            className="actions-button"
+                            onClick={() => toggleDropdown(group.id)}
+                            aria-label="Actions"
+                          >
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M10 6.5c-.83 0-1.5-.67-1.5-1.5S9.17 3.5 10 3.5s1.5.67 1.5 1.5S10.83 6.5 10 6.5zm0 1.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5zm0 5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5z"/>
+                            </svg>
+                          </button>
+                          {activeDropdown === group.id && (
+                            <div className="dropdown-menu">
+                              <button onClick={() => handleEditGroup(group)} className="dropdown-item">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                  <path d="M11.013 1.427a1.75 1.75 0 0 1 2.474 0l1.086 1.086a1.75 1.75 0 0 1 0 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 0 1-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61Zm.176 4.823L9.75 4.81l-6.286 6.287a.253.253 0 0 0-.064.108l-.558 1.953 1.953-.558a.253.253 0 0 0 .108-.064Zm1.238-3.763a.25.25 0 0 0-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 0 0 0-.354Z"/>
+                                </svg>
+                                Edit
+                              </button>
+                              <button onClick={() => handleDeleteGroup(group.id)} className="dropdown-item delete">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                  <path d="M11 1.75V3h2.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75ZM4.496 6.675l.66 6.6a.25.25 0 0 0 .249.225h5.19a.25.25 0 0 0 .249-.225l.66-6.6a.75.75 0 0 1 1.492.149l-.66 6.6A1.748 1.748 0 0 1 10.595 15h-5.19a1.75 1.75 0 0 1-1.741-1.575l-.66-6.6a.75.75 0 1 1 1.492-.15ZM6.5 1.75V3h3V1.75a.25.25 0 0 0-.25-.25h-2.5a.25.25 0 0 0-.25.25Z"/>
+                                </svg>
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))
@@ -500,8 +557,8 @@ export default function ContactsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredGroups.length > 0 ? (
-                      filteredGroups.map(group => (
+                    {paginatedGroups.length > 0 ? (
+                      paginatedGroups.map(group => (
                         <tr key={group.id}>
                           <td className="group-name">{group.name}</td>
                           <td>
@@ -509,20 +566,43 @@ export default function ContactsPage() {
                           </td>
                           <td className="group-description">{group.description}</td>
                           <td className="action-cell">
-                            <a 
-                              href={group.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="join-button"
-                            >
-                              Join Group ↗
-                            </a>
-                            <button onClick={() => handleEditGroup(group)} className="edit-button small">
-                              Edit
-                            </button>
-                            <button onClick={() => handleDeleteGroup(group.id)} className="delete-button small">
-                              Delete
-                            </button>
+                            <div className="table-actions">
+                              <a 
+                                href={group.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="join-button table-join"
+                              >
+                                Join Group ↗
+                              </a>
+                              <div className="actions-dropdown" ref={activeDropdown === group.id ? dropdownRef : null}>
+                                <button 
+                                  className="actions-button"
+                                  onClick={() => toggleDropdown(group.id)}
+                                  aria-label="Actions"
+                                >
+                                  <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10 6.5c-.83 0-1.5-.67-1.5-1.5S9.17 3.5 10 3.5s1.5.67 1.5 1.5S10.83 6.5 10 6.5zm0 1.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5zm0 5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5z"/>
+                                  </svg>
+                                </button>
+                                {activeDropdown === group.id && (
+                                  <div className="dropdown-menu">
+                                    <button onClick={() => handleEditGroup(group)} className="dropdown-item">
+                                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M11.013 1.427a1.75 1.75 0 0 1 2.474 0l1.086 1.086a1.75 1.75 0 0 1 0 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 0 1-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61Zm.176 4.823L9.75 4.81l-6.286 6.287a.253.253 0 0 0-.064.108l-.558 1.953 1.953-.558a.253.253 0 0 0 .108-.064Zm1.238-3.763a.25.25 0 0 0-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 0 0 0-.354Z"/>
+                                      </svg>
+                                      Edit
+                                    </button>
+                                    <button onClick={() => handleDeleteGroup(group.id)} className="dropdown-item delete">
+                                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M11 1.75V3h2.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75ZM4.496 6.675l.66 6.6a.25.25 0 0 0 .249.225h5.19a.25.25 0 0 0 .249-.225l.66-6.6a.75.75 0 0 1 1.492.149l-.66 6.6A1.748 1.748 0 0 1 10.595 15h-5.19a1.75 1.75 0 0 1-1.741-1.575l-.66-6.6a.75.75 0 1 1 1.492-.15ZM6.5 1.75V3h3V1.75a.25.25 0 0 0-.25-.25h-2.5a.25.25 0 0 0-.25.25Z"/>
+                                      </svg>
+                                      Delete
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -538,8 +618,30 @@ export default function ContactsPage() {
               </div>
             )}
 
+            {filteredGroups.length > 0 && totalPages > 1 && (
+              <div className="pagination">
+                <button 
+                  className="pagination-button"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  ← Previous
+                </button>
+                <div className="pagination-info">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <button 
+                  className="pagination-button"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+
             <div className="results-count">
-              Showing {filteredGroups.length} of {whatsappGroups.length} groups
+              Showing {paginatedGroups.length > 0 ? ((currentPage - 1) * itemsPerPage + 1) : 0}-{Math.min(currentPage * itemsPerPage, filteredGroups.length)} of {filteredGroups.length} groups
             </div>
           </>
         )}

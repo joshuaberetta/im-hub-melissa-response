@@ -129,6 +129,41 @@
   .submit-button {
     width: 100%;
   }
+
+  .group-actions {
+    flex-wrap: wrap;
+  }
+
+  .table-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .join-button.table-join {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .action-cell {
+    width: auto;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .pagination-button {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .pagination-info {
+    width: 100%;
+    order: -1;
+    margin-bottom: 0.5rem;
+  }
 }
 
 /* WhatsApp Groups Section */
@@ -270,46 +305,80 @@
   background-color: #777777;
 }
 
-.edit-button,
-.delete-button {
-  padding: 0.4rem 0.8rem;
-  border: none;
-  border-radius: 2px;
-  font-size: 0.85rem;
-  font-weight: 500;
+/* Actions Dropdown */
+.actions-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.actions-button {
+  padding: 0.5rem;
+  background-color: transparent;
+  border: 1px solid #CCCCCC;
+  border-radius: 4px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #595959;
+  transition: all 0.2s;
+}
+
+.actions-button:hover {
+  background-color: #F2F2F2;
+  border-color: #999999;
+  color: #262626;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background-color: white;
+  border: 1px solid #CCCCCC;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 140px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background-color: white;
+  border: none;
+  color: #262626;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: left;
   transition: background-color 0.2s;
-  margin-left: 0.5rem;
 }
 
-.edit-button {
-  background-color: #FFB703;
-  color: white;
+.dropdown-item:hover {
+  background-color: #F2F2F2;
 }
 
-.edit-button:hover {
-  background-color: #FB8500;
+.dropdown-item.delete {
+  color: #DC3545;
 }
 
-.delete-button {
-  background-color: #DC3545;
-  color: white;
+.dropdown-item.delete:hover {
+  background-color: #FFF5F5;
 }
 
-.delete-button:hover {
-  background-color: #C82333;
-}
-
-.edit-button.small,
-.delete-button.small {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.8rem;
+.dropdown-item svg {
+  flex-shrink: 0;
 }
 
 .group-actions {
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: auto;
 }
 
 .form-note {
@@ -465,17 +534,19 @@
 }
 
 .join-button {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   padding: 0.5rem 1rem;
   background-color: #026CB6;
   color: white;
   text-decoration: none;
-  border-radius: 2px;
+  border-radius: 4px;
   font-size: 0.9rem;
   font-weight: 500;
   text-align: center;
   transition: background-color 0.2s;
-  align-self: flex-start;
+  white-space: nowrap;
 }
 
 .join-button:hover {
@@ -498,6 +569,45 @@
   font-size: 0.9rem;
   text-align: right;
   padding-top: 0.5rem;
+}
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0 1rem 0;
+}
+
+.pagination-button {
+  padding: 0.5rem 1rem;
+  background-color: #026CB6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #025195;
+}
+
+.pagination-button:disabled {
+  background-color: #CCCCCC;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination-info {
+  color: #595959;
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-width: 120px;
+  text-align: center;
 }
 
 /* Table View Styles */
@@ -552,8 +662,21 @@
 }
 
 .action-cell {
-  text-align: center;
-  width: 150px;
+  width: 200px;
+  white-space: nowrap;
+}
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+}
+
+.join-button.table-join {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .no-results-table {
