@@ -1,7 +1,7 @@
 .main-nav {
   background-color: white;
-  border-bottom: 3px solid #026CB6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-bottom: 2px solid #E6F2FA;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -37,22 +37,22 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem 1.75rem;
-  color: #595959;
+  padding: 1rem 1.5rem;
+  color: #666;
   background: none;
   border: none;
-  border-bottom: 3px solid transparent;
+  border-bottom: 2px solid transparent;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  top: 3px;
+  top: 2px;
 }
 
 .nav-link:hover {
   color: #026CB6;
-  background-color: #E6F2FA;
+  background-color: #f8f9fa;
 }
 
 .nav-link.active {
@@ -71,9 +71,9 @@
   top: 100%;
   left: 0;
   background-color: white;
-  border: 1px solid #CCCCCC;
+  border: 1px solid #ddd;
   border-top: none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -84,8 +84,8 @@
 .dropdown-item {
   display: block;
   width: 100%;
-  padding: 0.75rem 1.5rem;
-  color: #595959;
+  padding: 0.75rem 1.25rem;
+  color: #666;
   background: none;
   border: none;
   text-align: left;
@@ -96,12 +96,12 @@
 }
 
 .dropdown-item:hover {
-  background-color: #E6F2FA;
+  background-color: #f8f9fa;
   color: #026CB6;
 }
 
 .dropdown-item.active {
-  background-color: #E6F2FA;
+  background-color: #f8f9fa;
   color: #026CB6;
   border-left-color: #026CB6;
   font-weight: 500;
@@ -187,13 +187,13 @@
   }
 
   .nav-link:hover {
-    background-color: #E6F2FA;
+    background-color: #f8f9fa;
   }
 
   .nav-link.active {
     border-bottom-color: #f0f0f0;
     border-left-color: #026CB6;
-    background-color: #E6F2FA;
+    background-color: #f8f9fa;
   }
 
   .dropdown-menu {
@@ -201,7 +201,7 @@
     box-shadow: none;
     border: none;
     background: #f8f9fa;
-    border-left: 3px solid #E6F2FA;
+    border-left: 3px solid #e0e0e0;
     margin-left: 1rem;
   }
 
@@ -211,7 +211,7 @@
   }
 
   .dropdown-item:hover {
-    background-color: #E6F2FA;
+    background-color: #f0f0f0;
   }
 }
 

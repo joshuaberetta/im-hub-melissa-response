@@ -68,19 +68,6 @@ export default function Announcements({ limit }: AnnouncementsProps) {
     }
   }
 
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return '🔴'
-      case 'medium':
-        return '🟠'
-      case 'low':
-        return '⚪'
-      default:
-        return '🔵'
-    }
-  }
-
   const getPriorityClass = (priority: string) => {
     return `priority-${priority}`
   }
@@ -125,9 +112,6 @@ export default function Announcements({ limit }: AnnouncementsProps) {
               className={`announcement-card ${getPriorityClass(announcement.priority)}`}
             >
               <div className="announcement-header">
-                <div className="announcement-priority">
-                  {getPriorityIcon(announcement.priority)}
-                </div>
                 <div className="announcement-title-section">
                   <h3>{announcement.title}</h3>
                   <div className="announcement-meta">

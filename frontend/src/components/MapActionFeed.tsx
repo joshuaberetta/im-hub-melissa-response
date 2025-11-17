@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getApiUrl } from '../config'
+import mapActionLogo from '../assets/mapaction.svg'
 import './MapActionFeed.css'
 
 interface MapEntry {
@@ -85,7 +86,7 @@ export default function MapActionFeed({ limit = 5, showTitle = true }: MapAction
       <div className="mapaction-feed">
         {showTitle && (
           <div className="mapaction-header">
-            <h2>🗺️ Latest MapAction Maps</h2>
+            <h2>Latest MapAction Maps</h2>
           </div>
         )}
         <div className="loading">Loading MapAction maps...</div>
@@ -98,7 +99,7 @@ export default function MapActionFeed({ limit = 5, showTitle = true }: MapAction
       <div className="mapaction-feed">
         {showTitle && (
           <div className="mapaction-header">
-            <h2>🗺️ Latest MapAction Maps</h2>
+            <h2>Latest MapAction Maps</h2>
           </div>
         )}
         <div className="error-message">{error || 'Unable to load maps'}</div>
@@ -112,7 +113,10 @@ export default function MapActionFeed({ limit = 5, showTitle = true }: MapAction
     <div className="mapaction-feed">
       {showTitle && (
         <div className="mapaction-header">
-          <h2>🗺️ Latest MapAction Maps</h2>
+          <div className="mapaction-title-wrapper">
+            <h2>Latest MapAction Maps</h2>
+            <img src={mapActionLogo} alt="MapAction" className="mapaction-logo" />
+          </div>
           <p className="mapaction-subtitle">
             Crisis maps for Jamaica Hurricane Response 2025
           </p>
@@ -137,7 +141,7 @@ export default function MapActionFeed({ limit = 5, showTitle = true }: MapAction
               <div className="map-meta">
                 {map.published && (
                   <span className="map-date">
-                    📅 {formatDate(map.published)}
+                    {formatDate(map.published)}
                   </span>
                 )}
               </div>
@@ -150,7 +154,7 @@ export default function MapActionFeed({ limit = 5, showTitle = true }: MapAction
                     rel="noopener noreferrer"
                     className="map-link view-link"
                   >
-                    View Map 🔗
+                    View Map
                   </a>
                 )}
                 {map.package_url && (
@@ -160,7 +164,7 @@ export default function MapActionFeed({ limit = 5, showTitle = true }: MapAction
                     rel="noopener noreferrer"
                     className="map-link download-link"
                   >
-                    Download Package ⬇️
+                    Download Package
                   </a>
                 )}
               </div>

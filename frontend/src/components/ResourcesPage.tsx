@@ -77,28 +77,6 @@ export default function ResourcesPage() {
     }
   }
 
-  const getFileIcon = (fileType?: string) => {
-    switch (fileType?.toLowerCase()) {
-      case 'pdf':
-        return '📄'
-      case 'xlsx':
-      case 'xls':
-      case 'excel':
-        return '📊'
-      case 'docx':
-      case 'doc':
-      case 'word':
-        return '📝'
-      case 'pptx':
-      case 'ppt':
-        return '📽️'
-      case 'zip':
-        return '🗜️'
-      default:
-        return '📎'
-    }
-  }
-
   if (isLoading) {
     return <div className="loading">Loading resources...</div>
   }
@@ -126,9 +104,6 @@ export default function ResourcesPage() {
                     className="resource-card"
                     onClick={() => handleResourceClick(resource)}
                   >
-                    <div className="resource-icon">
-                      {resource.type === 'external' ? '🔗' : getFileIcon(resource.fileType)}
-                    </div>
                     <div className="resource-info">
                       <h3 className="resource-name">{resource.name}</h3>
                       {resource.description && (

@@ -73,7 +73,7 @@ navigation:
 
 # Home page content
 welcome:
-  heading: "Welcome to the IM Hub"
+  heading: "Welcome to the Information Management Hub"
   intro: "Access key information management resources and tools. Navigate using the tabs above."
 
 sections:
@@ -88,7 +88,7 @@ sections:
       - name: "Contact Registration"
         url: "/forms/contact"
         internal: true
-      - name: "ReliefWeb - Melissa"
+      - name: "ReliefWeb - Hurricane Melissa"
         url: "https://response.reliefweb.int/latin-america-and-caribbean/hurricane-melissa"
         internal: false
       - name: "Coordination Architecture"
@@ -149,63 +149,6 @@ forms:
     description: "Emergency Telecommunications Cluster Assessment Form"
     embedUrl: "https://ee-eu.kobotoolbox.org/i/AAPGQRxB"
 
-# Sector pages
-sectors:
-  shelter:
-    title: "Shelter"
-    description: "Shelter and Non-Food Items resources and coordination"
-    resources:
-      - name: "Shelter Cluster Guidelines"
-        url: "#"
-      - name: "NFI Distribution Tracker"
-        url: "#"
-      - name: "Shelter Dashboard"
-        url: "/dashboards/shelter"
-  protection:
-    title: "Protection"
-    description: "Protection monitoring and response resources"
-    resources:
-      - name: "Protection Guidelines"
-        url: "#"
-      - name: "GBV Referral Pathways"
-        url: "#"
-      - name: "Protection Dashboard"
-        url: "/dashboards/protection"
-  wash:
-    title: "WASH"
-    description: "Water, Sanitation and Hygiene resources"
-    resources:
-      - name: "WASH Standards"
-        url: "#"
-      - name: "Water Quality Monitoring"
-        url: "#"
-      - name: "WASH Dashboard"
-        url: "/dashboards/wash"
-  health:
-    title: "Health"
-    description: "Health sector coordination and resources"
-    resources:
-      - name: "Health Cluster Resources"
-        url: "#"
-      - name: "Disease Surveillance"
-        url: "#"
-  education:
-    title: "Education"
-    description: "Education in emergencies resources"
-    resources:
-      - name: "Education Guidelines"
-        url: "#"
-      - name: "School Mapping"
-        url: "#"
-  food-security:
-    title: "Food Security"
-    description: "Food security and livelihoods resources"
-    resources:
-      - name: "Food Distribution Plans"
-        url: "#"
-      - name: "Livelihoods Programs"
-        url: "#"
-
 # Resources page
 resources:
   categories:
@@ -217,21 +160,73 @@ resources:
           type: "download"
           fileType: "xlsx"
     
-    - title: "External Resources"
+    - title: "Coordination & Meetings"
       resources:
-        - name: "ReliefWeb"
-          description: "Humanitarian information portal"
-          url: "https://reliefweb.int"
+        - name: "Coordination Architecture"
+          description: "Contact information for sector leads, national committees and international community"
+          url: "https://tinyurl.com/mrrfk89s"
+          type: "external"
+        - name: "CDPG WASH Thematic Chat Group"
+          description: "WhatsApp group for WASH coordination"
+          url: "https://t.ly/ItgKg"
+          type: "external"
+        - name: "Virtual OSOCC"
+          description: "Operative site for first responders (requires login and authorization)"
+          url: "https://vosocc.unocha.org/VODiscussions.aspx"
+          type: "external"
+    
+    - title: "Maps & Satellite Imagery"
+      resources:
+        - name: "MapAction Maps"
+          description: "Interactive maps for Jamaica Hurricane Melissa response"
+          url: "https://maps.mapaction.org/event/2025-jam-001"
+          type: "external"
+        - name: "PDC Pacific Disaster Center"
+          description: "Maps and products based on Melissa's passage through the Caribbean"
+          url: "https://www.pdc.org/weather-wall-updates/tropical-cyclone-melissa-atlantic-7/"
+          type: "external"
+        - name: "PDC DisasterAWARE"
+          description: "Real-time disaster monitoring and alerts"
+          url: "https://disasteraware.pdc.org/?hazard_id=331951"
+          type: "external"
+    
+    - title: "Logistics & Private Sector"
+      resources:
+        - name: "WFP Logistics Control Tower"
+          description: "Ship cargo to Jamaica with WFP - follow instructions or contact WFP representative"
+          url: "https://logcluster.org/en/document/rltwg-control-tower-upstream-template"
+          type: "external"
+        - name: "Connecting Business - Private Sector Tracker"
+          description: "Form for private companies to report their contributions"
+          url: "https://tinyurl.com/4nf2dwdy"
+          type: "external"
+    
+    - title: "Government & Regional Bodies"
+      resources:
+        - name: "ODPEM Official Website"
+          description: "Office of Disaster Preparedness and Emergency Management - Jamaica"
+          url: "https://www.odpem.org.jm/"
+          type: "external"
+        - name: "CDEMA Official Website"
+          description: "Caribbean Disaster Emergency Management Agency"
+          url: "http://www.cdema.org/"
+          type: "external"
+    
+    - title: "Other Resources"
+      resources:
+        - name: "ReliefWeb - Hurricane Melissa"
+          description: "Humanitarian information portal for Hurricane Melissa response"
+          url: "https://response.reliefweb.int/latin-america-and-caribbean/hurricane-melissa"
+          type: "external"
+        - name: "ReliefWeb Jamaica"
+          description: "All humanitarian information for Jamaica"
+          url: "https://reliefweb.int/country/jam"
           type: "external"
         - name: "Humanitarian Data Exchange"
           description: "Open humanitarian data platform"
           url: "https://data.humdata.org"
           type: "external"
         - name: "IM Handbook"
-          description: "IM practices and standards."
+          description: "IM practices and standards"
           url: "https://norwegian-refugee-council.gitbook.io/information-management-handbook"
-          type: "external"
-        - name: "Jamaica: Hurricane Melissa Coordination Structure"
-          description: "Overview of the coordination structure for the Hurricane Melissa response in Jamaica."
-          url: "https://reliefweb.int/report/jamaica/jamaica-hurricane-melissa-coordination-structure-alignment-emergency-inter-agency-sectors-and-government-7-november-2025"
           type: "external"

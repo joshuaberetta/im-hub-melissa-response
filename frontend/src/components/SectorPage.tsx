@@ -11,6 +11,7 @@ interface Resource {
 interface SectorData {
   title: string
   description: string
+  content: string
   resources: Resource[]
 }
 
@@ -62,22 +63,12 @@ export default function SectorPage() {
       <h2>{sector.title}</h2>
       <p className="description">{sector.description}</p>
       
-      <div className="resources-section">
-        <h3>Resources</h3>
-        <ul className="resource-list">
-          {sector.resources.map((resource, index) => (
-            <li key={index}>
-              <a 
-                href={resource.url} 
-                target={resource.url.startsWith('http') ? '_blank' : undefined}
-                rel={resource.url.startsWith('http') ? 'noopener noreferrer' : undefined}
-              >
-                {resource.name}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {sector.content && (
+        <div 
+          className="sector-content"
+          dangerouslySetInnerHTML={{ __html: sector.content }}
+        />
+      )}
     </div>
   )
 }

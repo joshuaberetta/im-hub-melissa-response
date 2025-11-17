@@ -174,13 +174,38 @@ def get_form(form_id: str, username: str = Depends(verify_token)):
 
 @app.get("/api/sector/{sector_id}")
 def get_sector(sector_id: str, username: str = Depends(verify_token)):
-    content = load_content_yaml()
-    sectors = content.get("sectors", {})
+    """Get sector information from markdown files"""
+    sectors_dir = Path(__file__).parent / "sectors"
+    sector_file = sectors_dir / f"{sector_id}.md"
     
-    if sector_id not in sectors:
+    if not sector_file.exists():
         raise HTTPException(status_code=404, detail="Sector not found")
     
-    return sectors[sector_id]
+    try:
+        with open(sector_file, 'r', encoding='utf-8') as f:
+            post = frontmatter.load(f)
+            
+            # Convert markdown content to HTML
+            html_content = markdown.markdown(
+                post.content,
+                extensions=['extra', 'codehilite', 'nl2br']
+            )
+            
+            # Extract links from the markdown content
+            # Look for markdown links: [text](url)
+            link_pattern = r'\[([^\]]+)\]\(([^\)]+)\)'
+            links = re.findall(link_pattern, post.content)
+            
+            resources = [{"name": name, "url": url} for name, url in links]
+            
+            return {
+                "title": post.get("title", sector_id.replace("-", " ").title()),
+                "description": post.get("description", ""),
+                "content": html_content,
+                "resources": resources
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing sector file: {str(e)}")
 
 
 @app.get("/api/resources")

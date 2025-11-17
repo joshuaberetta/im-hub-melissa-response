@@ -13,6 +13,81 @@
   line-height: 1.6;
 }
 
+.sector-content {
+  margin-bottom: 2rem;
+  color: #333;
+  line-height: 1.7;
+}
+
+.sector-content h1,
+.sector-content h2,
+.sector-content h3 {
+  color: #026CB6;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.sector-content h1 {
+  font-size: 1.75rem;
+  border-bottom: 2px solid #E6F2FA;
+  padding-bottom: 0.5rem;
+}
+
+.sector-content h2 {
+  font-size: 1.5rem;
+}
+
+.sector-content h3 {
+  font-size: 1.25rem;
+}
+
+.sector-content p {
+  margin-bottom: 1rem;
+}
+
+.sector-content ul,
+.sector-content ol {
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+}
+
+.sector-content li {
+  margin-bottom: 0.5rem;
+}
+
+.sector-content a {
+  color: #026CB6;
+  text-decoration: none;
+}
+
+.sector-content a:hover {
+  text-decoration: underline;
+}
+
+.sector-content code {
+  background-color: #f5f5f5;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.sector-content pre {
+  background-color: #f5f5f5;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.sector-content blockquote {
+  border-left: 4px solid #026CB6;
+  padding-left: 1rem;
+  margin-left: 0;
+  color: #595959;
+  font-style: italic;
+}
+
 .resources-section {
   background-color: white;
   border: 1px solid #CCCCCC;

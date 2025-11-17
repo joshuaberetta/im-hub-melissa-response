@@ -6,13 +6,13 @@
 
 .resources-header {
   margin-bottom: 2rem;
-  border-bottom: 2px solid #e0e0e0;
-  padding-bottom: 1rem;
+  border-bottom: 2px solid #E6F2FA;
+  padding-bottom: 0.5rem;
 }
 
 .resources-header h1 {
   font-size: 2rem;
-  color: #1a1a1a;
+  color: #026CB6;
   margin: 0 0 0.5rem 0;
 }
 
@@ -32,39 +32,34 @@
 
 .category-title {
   font-size: 1.5rem;
-  color: #2c3e50;
+  color: #026CB6;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 2px solid #E6F2FA;
 }
 
 .resource-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .resource-card {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1.25rem;
+  padding: 1.25rem 1.5rem;
   background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
+  border-left: 3px solid #026CB6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .resource-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #3498db;
-  transform: translateY(-2px);
-}
-
-.resource-icon {
-  font-size: 2rem;
-  flex-shrink: 0;
+  border-color: #999;
 }
 
 .resource-info {
@@ -75,7 +70,7 @@
 .resource-name {
   font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: #1a1a1a;
   margin: 0 0 0.25rem 0;
   word-wrap: break-word;
 }
@@ -89,15 +84,15 @@
 
 .resource-type {
   font-size: 0.75rem;
-  color: #3498db;
+  color: #666;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: normal;
   letter-spacing: 0.5px;
 }
 
 .resource-action {
   font-size: 1.5rem;
-  color: #3498db;
+  color: #026CB6;
   flex-shrink: 0;
 }
 
@@ -105,8 +100,9 @@
   text-align: center;
   padding: 3rem;
   background: #f8f9fa;
-  border-radius: 8px;
+  border-radius: 2px;
   color: #666;
+  border: 1px solid #e0e0e0;
 }
 
 .loading {
