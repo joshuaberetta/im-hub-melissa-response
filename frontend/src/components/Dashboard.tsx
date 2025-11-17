@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import Header from './Header'
 import Navigation from './Navigation'
 import Home from './Home'
@@ -26,8 +26,6 @@ interface NavItem {
 }
 
 export default function Dashboard({ onLogout }: DashboardProps) {
-  const navigate = useNavigate()
-  const location = useLocation()
   const [navigation, setNavigation] = useState<NavItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
