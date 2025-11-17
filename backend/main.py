@@ -104,7 +104,7 @@ def load_content_yaml():
 
 
 # Routes
-@app.get("/")
+@app.get("/api")
 def read_root():
     return {"message": "IM Hub API", "status": "running"}
 
