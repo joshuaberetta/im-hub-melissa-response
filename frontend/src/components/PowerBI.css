@@ -1,0 +1,55 @@
+.dashboard-section h2 {
+  color: #026CB6;
+  font-size: 1.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #E6F2FA;
+}
+
+.embed-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 280px);
+  min-height: 600px;
+  background-color: #F2F2F2;
+  border: 1px solid #CCCCCC;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.embed-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.embed-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #595959;
+}
+
+.embed-placeholder p {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.embed-placeholder .small-text {
+  font-size: 0.875rem;
+  color: #595959;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .dashboard-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .embed-container {
+    height: 500px;
+    min-height: 400px;
+  }
+}

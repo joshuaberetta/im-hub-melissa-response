@@ -1,0 +1,71 @@
+.sector-page h2 {
+  color: #026CB6;
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #E6F2FA;
+}
+
+.sector-page .description {
+  color: #595959;
+  margin-bottom: 2rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.resources-section {
+  background-color: white;
+  border: 1px solid #CCCCCC;
+  border-left: 4px solid #026CB6;
+  padding: 1.5rem;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.resources-section h3 {
+  color: #026CB6;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.resource-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.resource-list li {
+  margin-bottom: 0.75rem;
+  padding-left: 1.25rem;
+  position: relative;
+}
+
+.resource-list li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: #026CB6;
+  font-weight: bold;
+}
+
+.resource-list a {
+  color: #026CB6;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.resource-list a:hover {
+  color: #025195;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .sector-page h2 {
+    font-size: 1.5rem;
+  }
+
+  .resources-section {
+    padding: 1rem;
+  }
+}

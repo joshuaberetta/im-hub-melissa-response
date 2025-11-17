@@ -1,0 +1,260 @@
+title: "🌀 Jamaica Hurricane Response 2025"
+tagline: "Information Management Hub"
+
+# Login page content
+login:
+  heading: "🌀 Jamaica Hurricane Response 2025"
+  tagline: "Information Management Hub"
+  title: "Sign In"
+
+# Navigation configuration
+navigation:
+  - label: "Home"
+    path: "/"
+    type: "link"
+    
+  - label: "Dashboards"
+    path: "/dashboards"
+    type: "dropdown"
+    default: "5w"
+    items:
+      - label: "5W Dashboard"
+        path: "/dashboards/5w"
+      - label: "ODPEM Post-Hurricane Overview"
+        path: "/dashboards/odpem"
+      - label: "LogIE - Access Mapping"
+        path: "/dashboards/logie"
+        
+  - label: "Calendar"
+    path: "/calendar"
+    type: "link"
+    embedUrl: "https://teamup.com/kskhnc8sqobi5ofk21"
+    
+  - label: "Forms"
+    path: "/forms"
+    type: "dropdown"
+    items:
+      - label: "5W Form"
+        path: "/forms/5w"
+      - label: "Contact Registration"
+        path: "/forms/contact"
+      - label: "Direct Observation Form"
+        path: "/forms/direct-observation"
+      - label: "Assessment Registration"
+        path: "#"
+        externalUrl: "https://forms.monday.com/forms/d1767bd198eecd6e6b91a0011f1daa7e?r=euc1"
+
+  - label: "Sectors"
+    path: "/sectors"
+    type: "dropdown"
+    items:
+      - label: "Shelter"
+        path: "/sectors/shelter"
+      - label: "Protection"
+        path: "/sectors/protection"
+      - label: "WASH"
+        path: "/sectors/wash"
+      - label: "Health"
+        path: "/sectors/health"
+      - label: "Education"
+        path: "/sectors/education"
+      - label: "Food Security"
+        path: "/sectors/food-security"
+        
+  - label: "Contacts"
+    path: "/contacts"
+    type: "link"
+
+  - label: "Resources"
+    path: "/resources"
+    type: "link"
+
+# Home page content
+welcome:
+  heading: "Welcome to the IM Hub"
+  intro: "Access key information management resources and tools. Navigate using the tabs above."
+
+sections:
+  - title: "Quick Links"
+    links:
+      - name: "5W Dashboard"
+        url: "/dashboards/5w"
+        internal: true
+      - name: "5W Form"
+        url: "/forms/5w"
+        internal: true
+      - name: "Contact Registration"
+        url: "/forms/contact"
+        internal: true
+      - name: "ReliefWeb"
+        url: "https://reliefweb.int"
+        internal: false
+      - name: "Humanitarian Data Exchange"
+        url: "https://data.humdata.org"
+        internal: false
+
+  - title: "Data & Analytics"
+    links:
+      - name: "Interactive Dashboards"
+        url: "/dashboards"
+        internal: true
+      - name: "Data Collection Forms"
+        url: "/forms"
+        internal: true
+      - name: "Calendar"
+        url: "/calendar"
+        internal: true
+      - name: "Reports Archive"
+        url: "#"
+        internal: true
+
+  - title: "Resources by Sector"
+    links:
+      - name: "Shelter Resources"
+        url: "/sectors/shelter"
+        internal: true
+      - name: "Protection Resources"
+        url: "/sectors/protection"
+        internal: true
+      - name: "WASH Resources"
+        url: "/sectors/wash"
+        internal: true
+      - name: "Health Resources"
+        url: "/sectors/health"
+        internal: true
+
+  - title: "Contacts & Support"
+    links:
+      - name: "Contact Directory"
+        url: "/contacts"
+        internal: true
+      - name: "Register Your Contact"
+        url: "/forms/contact"
+        internal: true
+      - name: "Support & Help"
+        url: "#"
+        internal: true
+      - name: "System Updates"
+        url: "#"
+        internal: true
+
+about:
+  heading: "About This Hub"
+  content: "The Information Management Hub provides centralized access to data dashboards, data collection tools, and key resources for humanitarian information management. Use the navigation bar above to access different sections."
+
+# Dashboard configurations
+dashboards:
+  odpem:
+    title: "ODPEM Post-Hurricane Overview"
+    description: "ODPEM Post-Hurricane Overview Dashboard"
+    embedUrl: "https://app.powerbi.com/view?r=eyJrIjoiOGJiN2U0ZjMtYWIyYi00NGY0LWJkMGYtMGRkYzZlYjRjZTRhIiwidCI6IjBmOWUzNWRiLTU0NGYtNGY2MC1iZGNjLTVlYTQxNmU2ZGM3MCIsImMiOjh9"
+  5w:
+    title: "5W"
+    description: "Who, What, Where, When, and for Whom"
+    embedUrl: "https://app.powerbi.com/view?r=eyJrIjoiZGFlMThlNjgtZDhiYy00ZGNiLWI1YjAtNzU0OWZmZTJiM2QwIiwidCI6IjBmOWUzNWRiLTU0NGYtNGY2MC1iZGNjLTVlYTQxNmU2ZGM3MCIsImMiOjh9"
+  logie:
+    title: "LogIE"
+    description: "Access and connectivity mapping"
+    embedUrl: "https://logie.logcluster.org/?op=jam"
+
+# Forms configurations
+forms:
+  5w:
+    title: "5W Data Collection Form"
+    description: "Report your organization's activities"
+    embedUrl: "https://ee.kobotoolbox.org/i/HIgeod3Z"
+  contact:
+    title: "Contact Registration Form"
+    description: "Register humanitarian contacts"
+    embedUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfDz9Z3Uvs6Am4yIH-ik3bJM6Lv9VEYu6zZjUjCdw6p55pnhA/viewform"
+  direct-observation:
+    title: "Direct Observation Form"
+    description: "Report access and destruction while in the field."
+    embedUrl: "https://ee.kobotoolbox.org/i/e6mxVKSu"
+  assessment-registration:
+    title: "Assessment Form Registration"
+    description: "Register assessments that are ongoing in the field."
+    embedUrl: "https://forms.monday.com/forms/d1767bd198eecd6e6b91a0011f1daa7e?r=euc1"
+
+# Sector pages
+sectors:
+  shelter:
+    title: "Shelter"
+    description: "Shelter and Non-Food Items resources and coordination"
+    resources:
+      - name: "Shelter Cluster Guidelines"
+        url: "#"
+      - name: "NFI Distribution Tracker"
+        url: "#"
+      - name: "Shelter Dashboard"
+        url: "/dashboards/shelter"
+  protection:
+    title: "Protection"
+    description: "Protection monitoring and response resources"
+    resources:
+      - name: "Protection Guidelines"
+        url: "#"
+      - name: "GBV Referral Pathways"
+        url: "#"
+      - name: "Protection Dashboard"
+        url: "/dashboards/protection"
+  wash:
+    title: "WASH"
+    description: "Water, Sanitation and Hygiene resources"
+    resources:
+      - name: "WASH Standards"
+        url: "#"
+      - name: "Water Quality Monitoring"
+        url: "#"
+      - name: "WASH Dashboard"
+        url: "/dashboards/wash"
+  health:
+    title: "Health"
+    description: "Health sector coordination and resources"
+    resources:
+      - name: "Health Cluster Resources"
+        url: "#"
+      - name: "Disease Surveillance"
+        url: "#"
+  education:
+    title: "Education"
+    description: "Education in emergencies resources"
+    resources:
+      - name: "Education Guidelines"
+        url: "#"
+      - name: "School Mapping"
+        url: "#"
+  food-security:
+    title: "Food Security"
+    description: "Food security and livelihoods resources"
+    resources:
+      - name: "Food Distribution Plans"
+        url: "#"
+      - name: "Livelihoods Programs"
+        url: "#"
+
+# Resources page
+resources:
+  categories:
+    - title: "Templates & Forms"
+      resources:
+        - name: "5W Reporting Template"
+          description: "Excel template for bulk 5W data submission"
+          url: "/api/files/Jamaica_Melissa_5W_OfflineForm_20251116.xlsx"
+          type: "download"
+          fileType: "xlsx"
+    
+    - title: "External Resources"
+      resources:
+        - name: "ReliefWeb"
+          description: "Humanitarian information portal"
+          url: "https://reliefweb.int"
+          type: "external"
+        - name: "Humanitarian Data Exchange"
+          description: "Open humanitarian data platform"
+          url: "https://data.humdata.org"
+          type: "external"
+        - name: "OCHA Services"
+          description: "UN OCHA coordination tools"
+          url: "https://www.unocha.org/our-work/coordination/tools-and-services"
+          type: "external"

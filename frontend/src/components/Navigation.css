@@ -1,0 +1,142 @@
+.main-nav {
+  background-color: white;
+  border-bottom: 3px solid #026CB6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.nav-tabs {
+  list-style: none;
+  display: flex;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.nav-item {
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.75rem;
+  color: #595959;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  top: 3px;
+}
+
+.nav-link:hover {
+  color: #026CB6;
+  background-color: #E6F2FA;
+}
+
+.nav-link.active {
+  color: #026CB6;
+  border-bottom-color: #026CB6;
+  font-weight: 600;
+}
+
+.dropdown-icon {
+  font-size: 0.7rem;
+  transition: transform 0.2s;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  border: 1px solid #CCCCCC;
+  border-top: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 200px;
+  z-index: 1000;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  color: #595959;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.dropdown-item:hover {
+  background-color: #E6F2FA;
+  color: #026CB6;
+}
+
+.dropdown-item.active {
+  background-color: #E6F2FA;
+  color: #026CB6;
+  border-left-color: #026CB6;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .nav-container {
+    padding: 0 1rem;
+  }
+
+  .nav-tabs {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .nav-link {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #CCCCCC;
+    border-left: 3px solid transparent;
+    top: 0;
+    text-align: left;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .nav-link.active {
+    border-bottom-color: #CCCCCC;
+    border-left-color: #026CB6;
+  }
+
+  .dropdown-menu {
+    position: static;
+    box-shadow: none;
+    border: none;
+    border-left: 3px solid #E6F2FA;
+    margin-left: 1rem;
+  }
+
+  .dropdown-item {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+

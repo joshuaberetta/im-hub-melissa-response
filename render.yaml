@@ -1,0 +1,26 @@
+# Render.com deployment configuration
+# https://render.com/docs/blueprint-spec
+
+services:
+  # Web Service - FastAPI Backend
+  - type: web
+    name: im-hub
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: "./build.sh"
+    startCommand: "python backend/main.py"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: POWERBI_URL
+        value: ""
+      - key: KOBO_URL
+        value: ""
+      - key: PYTHON_VERSION
+        value: "3.11.0"

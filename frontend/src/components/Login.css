@@ -1,0 +1,125 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #026CB6 0%, #025195 100%);
+  padding: 1rem;
+}
+
+.login-box {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+}
+
+.login-header {
+  background: #026CB6;
+  color: white;
+  padding: 2rem;
+  text-align: center;
+}
+
+.login-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.login-header .tagline {
+  margin: 0.5rem 0 0;
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+.login-form {
+  padding: 2rem;
+}
+
+.login-form h2 {
+  margin: 0 0 1.5rem;
+  color: #1A1A1A;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #4A4A4A;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #CCCCCC;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #026CB6;
+  box-shadow: 0 0 0 3px rgba(2, 108, 182, 0.1);
+}
+
+.form-group input:disabled {
+  background-color: #F2F2F2;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background-color: #FEE;
+  border: 1px solid #FCC;
+  color: #C33;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.login-button {
+  width: 100%;
+  padding: 0.875rem;
+  background-color: #026CB6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-button:hover:not(:disabled) {
+  background-color: #025195;
+}
+
+.login-button:disabled {
+  background-color: #CCCCCC;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .login-header {
+    padding: 1.5rem;
+  }
+
+  .login-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .login-form {
+    padding: 1.5rem;
+  }
+}
