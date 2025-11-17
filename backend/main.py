@@ -194,17 +194,20 @@ def download_file(filename: str, username: str = Depends(verify_token)):
     files_dir = Path(__file__).parent / "files"
     file_path = files_dir / filename
     
-    # Security: prevent directory traversal
-    if not file_path.is_relative_to(files_dir):
-        raise HTTPException(status_code=403, detail="Access denied")
+    # Security: prevent directory traversal - check for .. in filename
+    if ".." in filename or filename.startswith("/") or filename.startswith("\\"):
+        raise HTTPException(status_code=403, detail="Invalid filename")
     
-    if not file_path.exists() or not file_path.is_file():
+    if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
+        
+    if not file_path.is_file():
+        raise HTTPException(status_code=404, detail="Not a file")
     
     return FileResponse(
-        path=file_path,
+        path=str(file_path),
         filename=filename,
-        media_type="application/octet-stream"
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
 

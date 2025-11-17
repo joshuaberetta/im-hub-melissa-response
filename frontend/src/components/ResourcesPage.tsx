@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { getApiUrl } from '../config'
-import MapActionFeed from './MapActionFeed'
 import './ResourcesPage.css'
 
 interface Resource {
@@ -47,11 +46,28 @@ export default function ResourcesPage() {
 
   const handleResourceClick = (resource: Resource) => {
     if (resource.type === 'download' && resource.url) {
-      // Trigger download
-      const link = document.createElement('a')
-      link.href = getApiUrl(resource.url)
-      link.download = resource.name
-      link.click()
+      // Trigger download with authentication
+      const token = localStorage.getItem('token')
+      fetch(getApiUrl(resource.url), {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then(response => response.blob())
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = resource.name
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          window.URL.revokeObjectURL(url)
+        })
+        .catch(err => {
+          console.error('Download failed:', err)
+          alert('Failed to download file. Please try again.')
+        })
     } else if (resource.type === 'external' && resource.url) {
       // Open external link
       window.open(resource.url, '_blank', 'noopener,noreferrer')
@@ -90,9 +106,6 @@ export default function ResourcesPage() {
         <h1>Resources</h1>
         <p>Download templates, guidelines, and access external resources</p>
       </div>
-
-      {/* MapAction Maps Feed */}
-      <MapActionFeed />
 
       <div className="resources-content">
         {categories.length === 0 ? (
