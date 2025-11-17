@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 import yaml
 import os
@@ -16,6 +16,8 @@ from typing import Optional
 import frontmatter
 import markdown
 import re
+from email.utils import formatdate
+import time
 
 load_dotenv()
 
@@ -328,6 +330,123 @@ def get_announcements(username: str = Depends(verify_token), limit: Optional[int
         announcements = announcements[:limit]
     
     return {"announcements": announcements}
+
+
+@app.get("/feeds/announcements.xml")
+def get_announcements_rss():
+    """Generate RSS feed for announcements - public endpoint"""
+    announcements_dir = Path(__file__).parent / "announcements"
+    content = load_content_yaml()
+    
+    # Site information
+    site_title = content.get("title", "IM Hub")
+    site_url = os.getenv("SITE_URL", "http://localhost:8000")
+    
+    if not announcements_dir.exists():
+        # Return empty feed
+        rss = f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>{site_title} - Announcements</title>
+    <link>{site_url}</link>
+    <description>Latest announcements from {site_title}</description>
+    <atom:link href="{site_url}/feeds/announcements.xml" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>"""
+        return Response(content=rss, media_type="application/xml")
+    
+    announcements = []
+    
+    # Read all markdown files
+    for file_path in announcements_dir.glob("*.md"):
+        if file_path.name == "README.md":
+            continue
+            
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                post = frontmatter.load(f)
+                
+                # Convert markdown content to HTML
+                html_content = markdown.markdown(
+                    post.content,
+                    extensions=['extra', 'codehilite', 'nl2br']
+                )
+                
+                # Get date
+                post_date = post.get("date")
+                if isinstance(post_date, datetime):
+                    pub_date = formatdate(time.mktime(post_date.timetuple()), usegmt=True)
+                else:
+                    try:
+                        dt = datetime.fromisoformat(str(post_date))
+                        pub_date = formatdate(time.mktime(dt.timetuple()), usegmt=True)
+                    except:
+                        pub_date = formatdate(usegmt=True)
+                
+                announcement = {
+                    "title": post.get("title", file_path.stem),
+                    "date": post.get("date", ""),
+                    "pub_date": pub_date,
+                    "priority": post.get("priority", "normal"),
+                    "author": post.get("author", "IM Team"),
+                    "tags": post.get("tags", []),
+                    "content": html_content,
+                    "id": file_path.stem,
+                }
+                
+                announcements.append(announcement)
+                
+        except Exception as e:
+            print(f"Error processing {file_path}: {e}")
+            continue
+    
+    # Sort by date (newest first)
+    announcements.sort(key=lambda x: x.get("date", ""), reverse=True)
+    
+    # Build RSS feed
+    items_xml = ""
+    for announcement in announcements[:20]:  # Limit to 20 most recent
+        title = announcement["title"].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        author = announcement["author"].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        content = announcement["content"]
+        
+        # Add priority badge to content
+        priority_emoji = {"high": "🔴", "medium": "🟠", "normal": "🔵", "low": "⚪"}
+        priority_badge = priority_emoji.get(announcement["priority"], "🔵")
+        
+        categories = ""
+        for tag in announcement["tags"]:
+            tag_escaped = tag.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            categories += f"    <category>{tag_escaped}</category>\n"
+        
+        item_url = f"{site_url}/#announcement-{announcement['id']}"
+        
+        items_xml += f"""  <item>
+    <title>{priority_badge} {title}</title>
+    <link>{item_url}</link>
+    <guid isPermaLink="false">{announcement['id']}</guid>
+    <pubDate>{announcement['pub_date']}</pubDate>
+    <author>{author}</author>
+{categories}    <description><![CDATA[{content}]]></description>
+  </item>
+"""
+    
+    # Get latest update time
+    latest_date = announcements[0]["pub_date"] if announcements else formatdate(usegmt=True)
+    
+    rss = f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>{site_title} - Announcements</title>
+    <link>{site_url}</link>
+    <description>Latest announcements and updates from {site_title}</description>
+    <language>en-us</language>
+    <lastBuildDate>{latest_date}</lastBuildDate>
+    <atom:link href="{site_url}/feeds/announcements.xml" rel="self" type="application/rss+xml" />
+{items_xml}  </channel>
+</rss>"""
+    
+    return Response(content=rss, media_type="application/xml")
 
 
 # Serve frontend static files in production
