@@ -261,6 +261,86 @@
   background-color: #c82333;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h3 {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.user-form {
+  background-color: #f8f9fa;
+  border: 2px solid #026CB6;
+  margin-bottom: 2rem;
+}
+
+.user-form h4 {
+  color: #026CB6;
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  color: #262626;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"] {
+  padding: 0.6rem;
+  border: 1px solid #CCCCCC;
+  border-radius: 2px;
+  font-size: 0.95rem;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus {
+  outline: none;
+  border-color: #026CB6;
+  box-shadow: 0 0 0 2px rgba(2, 108, 182, 0.1);
+}
+
+.form-group input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.admin-badge {
+  color: #ffc107;
+  font-size: 0.9rem;
+}
+
+.inactive-badge {
+  color: #dc3545;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 768px) {
   .admin-page {
     padding: 1rem;
@@ -289,6 +369,20 @@
   .approve-btn,
   .delete-btn,
   .restore-btn {
+    width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .section-header .approve-btn {
     width: 100%;
   }
 }

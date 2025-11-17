@@ -27,6 +27,7 @@ from database import (
     WhatsAppGroup as DBWhatsAppGroup,
     Resource as DBResource,
     ContactSubmission as DBContactSubmission,
+    User as DBUser,
     seed_initial_data
 )
 
@@ -167,6 +168,37 @@ class ContactSubmissionResponse(BaseModel):
         from_attributes = True
 
 
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    is_admin: bool = False
+
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    is_admin: Optional[bool] = None
+    is_active: Optional[bool] = None
+    password: Optional[str] = None
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    is_admin: bool
+    is_active: bool
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    last_login: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
 # Helper functions
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -219,15 +251,27 @@ def read_root():
 
 
 @app.post("/api/auth/login", response_model=TokenResponse)
-def login(login_data: LoginRequest):
-    if login_data.username != ADMIN_USERNAME or login_data.password != ADMIN_PASSWORD:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-        )
+def login(login_data: LoginRequest, db: Session = Depends(get_db)):
+    # Try database authentication first
+    user = db.query(DBUser).filter(DBUser.username == login_data.username).first()
     
-    access_token = create_access_token(data={"sub": login_data.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+    if user and user.is_active and user.check_password(login_data.password):
+        # Update last login time
+        user.last_login = datetime.utcnow()
+        db.commit()
+        
+        access_token = create_access_token(data={"sub": login_data.username, "is_admin": user.is_admin})
+        return {"access_token": access_token, "token_type": "bearer"}
+    
+    # Fallback to environment variable authentication for backwards compatibility
+    if login_data.username == ADMIN_USERNAME and login_data.password == ADMIN_PASSWORD:
+        access_token = create_access_token(data={"sub": login_data.username, "is_admin": True})
+        return {"access_token": access_token, "token_type": "bearer"}
+    
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect username or password",
+    )
 
 
 @app.get("/api/auth/verify")
@@ -686,6 +730,101 @@ def delete_contact_submission(
     db.commit()
     
     return {"message": "Contact submission deleted", "id": submission_id}
+
+
+# User management endpoints
+@app.get("/api/users", response_model=List[UserResponse])
+def get_users(
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Get all users (admin only)"""
+    users = db.query(DBUser).order_by(DBUser.username).all()
+    return [user.to_dict() for user in users]
+
+
+@app.post("/api/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def create_user(
+    user_data: UserCreate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Create a new user (admin only)"""
+    # Check if username already exists
+    existing_user = db.query(DBUser).filter(DBUser.username == user_data.username).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    
+    # Create new user
+    new_user = DBUser(
+        username=user_data.username,
+        full_name=user_data.full_name,
+        email=user_data.email,
+        is_admin=user_data.is_admin,
+        is_active=True
+    )
+    new_user.set_password(user_data.password)
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return new_user.to_dict()
+
+
+@app.put("/api/users/{user_id}", response_model=UserResponse)
+def update_user(
+    user_id: int,
+    user_data: UserUpdate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Update a user (admin only)"""
+    user = db.query(DBUser).filter(DBUser.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update fields
+    if user_data.full_name is not None:
+        user.full_name = user_data.full_name
+    if user_data.email is not None:
+        user.email = user_data.email
+    if user_data.is_admin is not None:
+        user.is_admin = user_data.is_admin
+    if user_data.is_active is not None:
+        user.is_active = user_data.is_active
+    if user_data.password is not None:
+        user.set_password(user_data.password)
+    
+    user.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(user)
+    
+    return user.to_dict()
+
+
+@app.delete("/api/users/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Delete a user (admin only)"""
+    user = db.query(DBUser).filter(DBUser.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent deleting yourself
+    current_user = db.query(DBUser).filter(DBUser.username == username).first()
+    if current_user and current_user.id == user_id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    db.delete(user)
+    db.commit()
+    
+    return {"message": "User deleted", "id": user_id}
 
 
 @app.get("/api/mapaction-feed")

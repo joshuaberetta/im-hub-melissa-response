@@ -7,6 +7,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, B
 from sqlalchemy.orm import sessionmaker, declarative_base
 from datetime import datetime
 from pathlib import Path
+import bcrypt
 
 # Database file location
 DB_PATH = Path(__file__).parent / "imhub.db"
@@ -127,6 +128,46 @@ class ContactSubmission(Base):
         }
 
 
+class User(Base):
+    """User accounts for authentication"""
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    full_name = Column(String(200))
+    email = Column(String(200))
+    is_admin = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_login = Column(DateTime)
+    
+    def set_password(self, password: str):
+        """Hash and set password"""
+        salt = bcrypt.gensalt()
+        self.password_hash = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+    
+    def check_password(self, password: str) -> bool:
+        """Verify password"""
+        return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
+    
+    def to_dict(self, include_sensitive=False):
+        """Convert to dictionary for API responses"""
+        data = {
+            "id": self.id,
+            "username": self.username,
+            "full_name": self.full_name,
+            "email": self.email,
+            "is_admin": self.is_admin,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "last_login": self.last_login.isoformat() if self.last_login else None,
+        }
+        return data
+
+
 # Database initialization
 def init_db():
     """Create all tables in the database"""
@@ -146,9 +187,29 @@ def get_db():
 
 # Seed some initial data for testing
 def seed_initial_data():
-    """Add some initial WhatsApp groups for testing"""
+    """Add some initial WhatsApp groups and default admin user for testing"""
+    import os
     db = SessionLocal()
     try:
+        # Create default admin user if no users exist
+        user_count = db.query(User).count()
+        if user_count == 0:
+            admin_username = os.getenv("ADMIN_USERNAME", "admin")
+            admin_password = os.getenv("ADMIN_PASSWORD", "password")
+            
+            admin_user = User(
+                username=admin_username,
+                full_name="System Administrator",
+                is_admin=True,
+                is_active=True
+            )
+            admin_user.set_password(admin_password)
+            db.add(admin_user)
+            db.commit()
+            print(f"Created default admin user: {admin_username}")
+        else:
+            print(f"Database already has {user_count} users")
+        
         # Check if we already have data
         existing_count = db.query(WhatsAppGroup).count()
         if existing_count > 0:
