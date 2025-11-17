@@ -36,10 +36,9 @@ Click "Add Environment Variable" and add:
 
 ```
 SECRET_KEY=<generate-a-random-secret-key>
-ADMIN_USERNAME=admin
+ADMIN_USERNAME=melissa
 ADMIN_PASSWORD=<your-secure-password>
-POWERBI_URL=<your-powerbi-embed-url>
-KOBO_URL=<your-kobo-form-url>
+SITE_URL=https://your-app-name.onrender.com
 ```
 
 To generate a secure SECRET_KEY:
@@ -47,23 +46,44 @@ To generate a secure SECRET_KEY:
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
+**Important:** After deployment, update `SITE_URL` with your actual Render URL (e.g., `https://im-hub.onrender.com`)
+
 5. Click "Create Web Service"
 
 ### Step 3: Wait for Deployment
 
 Render will:
 1. Clone your repository
-2. Run `build.sh` to install dependencies and build frontend
+2. Run `build.sh` to:
+   - Install Python backend dependencies
+   - Install Node.js frontend dependencies
+   - Build the React frontend (creates `frontend/dist/`)
 3. Start your application with `python backend/main.py`
+   - The backend serves the built frontend files at the root
+   - API endpoints are available at `/api/*`
 4. Provide you with a URL like: `https://im-hub.onrender.com`
+
+**Note:** The full application (frontend + backend) runs from a single service. The backend serves both the API and the static frontend files.
 
 ### Step 4: Access Your Application
 
 Once deployed, visit your Render URL. You'll be redirected to the login page.
 
 **Default credentials (change these!):**
-- Username: `admin` (or what you set in ADMIN_USERNAME)
+- Username: `melissa` (or what you set in ADMIN_USERNAME)
 - Password: Whatever you set in ADMIN_PASSWORD
+
+### Step 5: Update SITE_URL Environment Variable
+
+After your app is deployed and you have your Render URL:
+
+1. Go to your service in Render dashboard
+2. Click "Environment" tab
+3. Find the `SITE_URL` variable
+4. Update it to your actual URL (e.g., `https://im-hub.onrender.com`)
+5. Click "Save Changes"
+
+This ensures RSS feeds and external links work correctly.
 
 ## Alternative: Using Blueprint (render.yaml)
 
@@ -147,6 +167,19 @@ To use your own domain:
 Check your application health:
 - Visit: `https://your-app.onrender.com/api/health`
 - Should return: `{"status": "healthy", "timestamp": "..."}`
+
+### Verify Full Stack Deployment
+
+1. **Frontend loads**: Visit your Render URL, should see the login page
+2. **API works**: Visit `/api/health`, should return JSON
+3. **Authentication works**: Login with your credentials
+4. **Static files serve**: Check browser console for 404 errors (shouldn't be any)
+5. **All routes work**: Navigate to different pages (Home, Dashboards, etc.)
+
+If frontend doesn't load:
+- Check build logs for errors during `npm run build`
+- Verify `frontend/dist/` was created during build
+- Check that backend is serving static files (look for "Serving frontend" in logs)
 
 ## Logs
 
