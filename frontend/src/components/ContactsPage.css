@@ -12,6 +12,53 @@
   font-size: 1.05rem;
 }
 
+/* Tab Navigation */
+.tab-navigation {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #E6F2FA;
+}
+
+.tab-button {
+  padding: 0.75rem 1.5rem;
+  background-color: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #595959;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: -2px;
+}
+
+.tab-button:hover {
+  color: #026CB6;
+  background-color: #F8F9FA;
+}
+
+.tab-button.active {
+  color: #026CB6;
+  border-bottom-color: #026CB6;
+  font-weight: 600;
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .info-box {
   background-color: #E6F2FA;
   border-left: 4px solid #026CB6;
@@ -99,13 +146,15 @@
     grid-template-columns: 1fr;
   }
 
-  .groups-table {
-    font-size: 0.85rem;
+  .tab-navigation {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .groups-table th,
-  .groups-table td {
-    padding: 0.5rem;
+  .tab-button {
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
   }
 
   .section-header {
@@ -148,22 +197,6 @@
   .action-cell {
     width: auto;
   }
-
-  .pagination {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .pagination-button {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.85rem;
-  }
-
-  .pagination-info {
-    width: 100%;
-    order: -1;
-    margin-bottom: 0.5rem;
-  }
 }
 
 /* WhatsApp Groups Section */
@@ -173,14 +206,6 @@
   border-top: 2px solid #E6F2FA;
 }
 
-.whatsapp-section h2 {
-  color: #026CB6;
-  font-size: 1.75rem;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #E6F2FA;
-}
-
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -188,6 +213,18 @@
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 1rem;
+}
+
+.section-header h3 {
+  color: #026CB6;
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.section-description {
+  color: #595959;
+  margin: 0;
+  font-size: 1rem;
 }
 
 .add-group-button {
@@ -303,75 +340,6 @@
 
 .cancel-button:hover {
   background-color: #777777;
-}
-
-/* Actions Dropdown */
-.actions-dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.actions-button {
-  padding: 0.5rem;
-  background-color: transparent;
-  border: 1px solid #CCCCCC;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #595959;
-  transition: all 0.2s;
-}
-
-.actions-button:hover {
-  background-color: #F2F2F2;
-  border-color: #999999;
-  color: #262626;
-}
-
-.dropdown-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  background-color: white;
-  border: 1px solid #CCCCCC;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  min-width: 140px;
-  z-index: 1000;
-  overflow: hidden;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.625rem 1rem;
-  background-color: white;
-  border: none;
-  color: #262626;
-  font-size: 0.9rem;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 0.2s;
-}
-
-.dropdown-item:hover {
-  background-color: #F2F2F2;
-}
-
-.dropdown-item.delete {
-  color: #DC3545;
-}
-
-.dropdown-item.delete:hover {
-  background-color: #FFF5F5;
-}
-
-.dropdown-item svg {
-  flex-shrink: 0;
 }
 
 .group-actions {
@@ -551,6 +519,19 @@
 
 .join-button:hover {
   background-color: #025195;
+}
+
+.join-button.table-join {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
 }
 
 .no-results {

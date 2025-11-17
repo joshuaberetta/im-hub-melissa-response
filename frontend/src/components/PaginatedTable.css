@@ -1,0 +1,125 @@
+/* Paginated Table Styles */
+.paginated-table-container {
+  width: 100%;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #CCCCCC;
+  border-radius: 2px;
+  margin-bottom: 1rem;
+  background-color: white;
+}
+
+.paginated-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.paginated-table thead {
+  background-color: #F2F2F2;
+}
+
+.paginated-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #262626;
+  font-size: 0.95rem;
+  border-bottom: 2px solid #CCCCCC;
+}
+
+.paginated-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #E6E6E6;
+  color: #595959;
+}
+
+.paginated-table tbody tr:hover {
+  background-color: #F8F9FA;
+}
+
+.paginated-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.no-results-table {
+  text-align: center;
+  padding: 2rem !important;
+  color: #999999;
+  font-style: italic;
+}
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0 1rem 0;
+}
+
+.pagination-button {
+  padding: 0.5rem 1rem;
+  background-color: #026CB6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #025195;
+}
+
+.pagination-button:disabled {
+  background-color: #CCCCCC;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination-info {
+  color: #595959;
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-width: 120px;
+  text-align: center;
+}
+
+.results-count {
+  color: #999999;
+  font-size: 0.9rem;
+  text-align: right;
+  padding-top: 0.5rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .paginated-table {
+    font-size: 0.85rem;
+  }
+
+  .paginated-table th,
+  .paginated-table td {
+    padding: 0.5rem;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .pagination-button {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .pagination-info {
+    width: 100%;
+    order: -1;
+    margin-bottom: 0.5rem;
+  }
+}
