@@ -10,6 +10,12 @@ from datetime import datetime, timedelta
 import jwt
 from dotenv import load_dotenv
 from pathlib import Path
+import feedparser
+import httpx
+from typing import Optional
+import frontmatter
+import markdown
+import re
 
 load_dotenv()
 
@@ -205,6 +211,120 @@ def download_file(filename: str, username: str = Depends(verify_token)):
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+
+@app.get("/api/mapaction-feed")
+async def get_mapaction_feed(username: str = Depends(verify_token)):
+    """Fetch and parse MapAction RSS feed"""
+    feed_url = "https://maps.mapaction.org/feeds/custom.atom?groups=2025-jam-001"
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(feed_url)
+            response.raise_for_status()
+            
+        # Parse the RSS/Atom feed
+        feed = feedparser.parse(response.text)
+        
+        # Extract relevant information from feed entries
+        maps = []
+        for entry in feed.entries[:20]:  # Limit to 20 most recent entries
+            map_data = {
+                "title": entry.get("title", ""),
+                "summary": entry.get("summary", ""),
+                "link": entry.get("link", ""),
+                "updated": entry.get("updated", ""),
+                "published": entry.get("published", ""),
+                "id": entry.get("id", ""),
+            }
+            
+            # Extract georss box if available
+            if hasattr(entry, 'georss_box'):
+                map_data["georss_box"] = entry.georss_box
+            
+            # Extract enclosure link (package download)
+            if hasattr(entry, 'links'):
+                for link in entry.links:
+                    if link.get('rel') == 'enclosure':
+                        map_data["package_url"] = link.get('href', '')
+                        map_data["package_type"] = link.get('type', '')
+                        break
+            
+            maps.append(map_data)
+        
+        return {
+            "feed_title": feed.feed.get("title", "MapAction Maps"),
+            "feed_updated": feed.feed.get("updated", ""),
+            "maps": maps
+        }
+        
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=503, detail=f"Failed to fetch MapAction feed: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing feed: {str(e)}")
+
+
+@app.get("/api/announcements")
+def get_announcements(username: str = Depends(verify_token), limit: Optional[int] = None):
+    """Get announcements from markdown files"""
+    announcements_dir = Path(__file__).parent / "announcements"
+    
+    if not announcements_dir.exists():
+        return {"announcements": []}
+    
+    announcements = []
+    
+    # Read all markdown files
+    for file_path in announcements_dir.glob("*.md"):
+        if file_path.name == "README.md":
+            continue
+            
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                post = frontmatter.load(f)
+                
+                # Convert markdown content to HTML
+                html_content = markdown.markdown(
+                    post.content,
+                    extensions=['extra', 'codehilite', 'nl2br']
+                )
+                
+                # Extract summary (first paragraph)
+                summary_match = re.search(r'<p>(.*?)</p>', html_content, re.DOTALL)
+                summary = summary_match.group(1) if summary_match else ""
+                
+                announcement = {
+                    "id": file_path.stem,
+                    "title": post.get("title", file_path.stem),
+                    "date": post.get("date", "").isoformat() if isinstance(post.get("date"), datetime) else str(post.get("date", "")),
+                    "priority": post.get("priority", "normal"),
+                    "author": post.get("author", ""),
+                    "tags": post.get("tags", []),
+                    "content": html_content,
+                    "summary": summary,
+                }
+                
+                announcements.append(announcement)
+                
+        except Exception as e:
+            print(f"Error processing {file_path}: {e}")
+            continue
+    
+    # Sort by date (newest first), then by priority
+    priority_order = {"high": 0, "medium": 1, "normal": 2, "low": 3}
+    announcements.sort(
+        key=lambda x: (
+            x.get("date", ""),
+            priority_order.get(x.get("priority", "normal"), 2)
+        ),
+        reverse=True
+    )
+    
+    # Apply limit if specified
+    if limit:
+        announcements = announcements[:limit]
+    
+    return {"announcements": announcements}
 
 
 # Serve frontend static files in production

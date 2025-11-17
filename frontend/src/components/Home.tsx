@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getApiUrl } from '../config'
+import Announcements from './Announcements'
+import MapActionFeed from './MapActionFeed'
 import './Home.css'
 
 interface Link {
@@ -85,26 +87,44 @@ export default function Home() {
       <h2>{content.welcome?.heading || content.title || 'Welcome'}</h2>
       <p className="intro-text">{content.welcome?.intro || content.intro || ''}</p>
 
-      <div className="links-grid">
-        {content.sections.map((section, index) => (
-          <div key={index} className="link-card">
-            <h3>{section.title}</h3>
-            <ul className="resource-list">
-              {section.links.map((link, linkIndex) => (
-                <li key={linkIndex}>
-                  <a
-                    href={link.url}
-                    onClick={(e) => handleLinkClick(link, e)}
-                    target={link.internal ? undefined : '_blank'}
-                    rel={link.internal ? undefined : 'noopener noreferrer'}
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
+      <div className="home-three-column-grid">
+        {/* Column 1: Quick Links */}
+        <div className="home-column quick-links-column">
+          <div className="column-header">
+            <h3>🔗 Quick Links</h3>
           </div>
-        ))}
+          <div className="links-grid">
+            {content.sections.map((section, index) => (
+              <div key={index} className="link-card">
+                <h4>{section.title}</h4>
+                <ul className="resource-list">
+                  {section.links.map((link, linkIndex) => (
+                    <li key={linkIndex}>
+                      <a
+                        href={link.url}
+                        onClick={(e) => handleLinkClick(link, e)}
+                        target={link.internal ? undefined : '_blank'}
+                        rel={link.internal ? undefined : 'noopener noreferrer'}
+                      >
+                        {link.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Column 2: MapAction Feed */}
+        <div className="home-column maps-column">
+          <MapActionFeed limit={5} showTitle={true} />
+        </div>
+
+        {/* Column 3: Announcements */}
+        <div className="home-column announcements-column">
+          <Announcements limit={5} />
+        </div>
       </div>
 
       {content.about && (

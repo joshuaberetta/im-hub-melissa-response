@@ -1,0 +1,236 @@
+.announcements-section {
+  margin-bottom: 2rem;
+}
+
+.announcements-section h2 {
+  color: #026CB6;
+  font-size: 1.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #E6F2FA;
+}
+
+.announcements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.announcement-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  border-left: 4px solid #026CB6;
+}
+
+.announcement-card.priority-high {
+  border-left-color: #e74c3c;
+  background: #fff5f5;
+}
+
+.announcement-card.priority-medium {
+  border-left-color: #f39c12;
+  background: #fffbf5;
+}
+
+.announcement-card.priority-normal {
+  border-left-color: #026CB6;
+}
+
+.announcement-card.priority-low {
+  border-left-color: #95a5a6;
+}
+
+.announcement-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.announcement-header {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.announcement-priority {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.announcement-title-section {
+  flex: 1;
+}
+
+.announcement-title-section h3 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.announcement-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+.announcement-date,
+.announcement-author {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.announcement-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.tag {
+  background: #E6F2FA;
+  color: #026CB6;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.announcement-content {
+  margin-bottom: 1rem;
+  color: #333;
+  line-height: 1.6;
+}
+
+.announcement-summary {
+  color: #555;
+}
+
+.announcement-full-content {
+  color: #333;
+}
+
+.announcement-full-content h1,
+.announcement-full-content h2,
+.announcement-full-content h3 {
+  color: #026CB6;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.announcement-full-content h1 {
+  font-size: 1.75rem;
+  border-bottom: 2px solid #E6F2FA;
+  padding-bottom: 0.5rem;
+}
+
+.announcement-full-content h2 {
+  font-size: 1.5rem;
+}
+
+.announcement-full-content h3 {
+  font-size: 1.25rem;
+}
+
+.announcement-full-content p {
+  margin-bottom: 1rem;
+}
+
+.announcement-full-content ul,
+.announcement-full-content ol {
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+}
+
+.announcement-full-content li {
+  margin-bottom: 0.5rem;
+}
+
+.announcement-full-content a {
+  color: #026CB6;
+  text-decoration: underline;
+}
+
+.announcement-full-content a:hover {
+  color: #025195;
+}
+
+.announcement-full-content code {
+  background: #f5f5f5;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.announcement-full-content pre {
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.announcement-full-content blockquote {
+  border-left: 4px solid #026CB6;
+  margin: 1rem 0;
+  padding-left: 1rem;
+  color: #555;
+  font-style: italic;
+}
+
+.announcement-toggle {
+  background: white;
+  color: #026CB6;
+  border: 1px solid #026CB6;
+  padding: 0.5rem 1.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.announcement-toggle:hover {
+  background: #026CB6;
+  color: white;
+}
+
+.error-message {
+  padding: 1rem;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  color: #c00;
+  text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .announcements-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .announcement-card {
+    padding: 1rem;
+  }
+
+  .announcement-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .announcement-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .announcement-title-section h3 {
+    font-size: 1.1rem;
+  }
+}

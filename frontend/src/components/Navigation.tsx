@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import './Navigation.css'
 
@@ -20,6 +20,7 @@ export default function Navigation({ navigation }: NavigationProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleNavClick = (item: NavItem) => {
     if (item.type === 'dropdown') {
@@ -27,9 +28,11 @@ export default function Navigation({ navigation }: NavigationProps) {
     } else if (item.type === 'external' && item.externalUrl) {
       window.open(item.externalUrl, '_blank', 'noopener,noreferrer')
       setOpenDropdown(null)
+      setIsMobileMenuOpen(false)
     } else {
       navigate(item.path)
       setOpenDropdown(null)
+      setIsMobileMenuOpen(false)
     }
   }
 
@@ -40,16 +43,56 @@ export default function Navigation({ navigation }: NavigationProps) {
       navigate(path)
     }
     setOpenDropdown(null)
+    setIsMobileMenuOpen(false)
   }
 
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + '/')
   }
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+    setOpenDropdown(null)
+  }
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobileMenuOpen])
+
   return (
     <nav className="main-nav">
       <div className="nav-container">
-        <ul className="nav-tabs">
+        {/* Mobile menu button */}
+        <button 
+          className="mobile-menu-button"
+          onClick={toggleMobileMenu}
+          aria-label="Toggle menu"
+        >
+          <span className="hamburger-icon">
+            {isMobileMenuOpen ? '✕' : '☰'}
+          </span>
+          <span className="menu-text">Menu</span>
+        </button>
+
+        {/* Overlay for mobile */}
+        {isMobileMenuOpen && (
+          <div 
+            className="mobile-overlay"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Navigation menu */}
+        <ul className={`nav-tabs ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
           {navigation.map((item, index) => (
             <li key={index} className="nav-item">
               <button

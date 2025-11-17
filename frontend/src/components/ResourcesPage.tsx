@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getApiUrl } from '../config'
+import MapActionFeed from './MapActionFeed'
 import './ResourcesPage.css'
 
 interface Resource {
@@ -89,6 +90,9 @@ export default function ResourcesPage() {
         <h1>Resources</h1>
         <p>Download templates, guidelines, and access external resources</p>
       </div>
+
+      {/* MapAction Maps Feed */}
+      <MapActionFeed />
 
       <div className="resources-content">
         {categories.length === 0 ? (
