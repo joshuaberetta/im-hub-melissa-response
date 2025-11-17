@@ -71,4 +71,275 @@
     height: 500px;
     min-height: 400px;
   }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .filter-select,
+  .search-input {
+    width: 100%;
+    max-width: none;
+  }
+
+  .view-toggle {
+    width: 100%;
+  }
+
+  .view-button {
+    flex: 1;
+  }
+
+  .groups-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .groups-table {
+    font-size: 0.85rem;
+  }
+
+  .groups-table th,
+  .groups-table td {
+    padding: 0.5rem;
+  }
 }
+
+/* WhatsApp Groups Section */
+.whatsapp-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 2px solid #E6F2FA;
+}
+
+.whatsapp-section h2 {
+  color: #026CB6;
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #E6F2FA;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+.filter-select,
+.search-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #CCCCCC;
+  border-radius: 2px;
+  font-size: 1rem;
+  background-color: white;
+  flex: 1;
+  max-width: 300px;
+}
+
+.filter-select:focus,
+.search-input:focus {
+  outline: none;
+  border-color: #026CB6;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid #CCCCCC;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.view-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background-color: white;
+  color: #595959;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border-right: 1px solid #CCCCCC;
+}
+
+.view-button:last-child {
+  border-right: none;
+}
+
+.view-button:hover {
+  background-color: #F8F9FA;
+}
+
+.view-button.active {
+  background-color: #026CB6;
+  color: white;
+}
+
+.view-button.active:hover {
+  background-color: #025195;
+}
+
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.group-card {
+  background-color: white;
+  border: 1px solid #CCCCCC;
+  border-radius: 2px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.group-card h3 {
+  color: #262626;
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 600;
+  flex: 1;
+}
+
+.sector-tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: #E6F2FA;
+  color: #026CB6;
+  border-radius: 2px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.group-description {
+  color: #595959;
+  line-height: 1.5;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.join-button {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: #026CB6;
+  color: white;
+  text-decoration: none;
+  border-radius: 2px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  transition: background-color 0.2s;
+  align-self: flex-start;
+}
+
+.join-button:hover {
+  background-color: #025195;
+}
+
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  color: #999999;
+  font-style: italic;
+  background-color: #F8F9FA;
+  border: 1px solid #CCCCCC;
+  border-radius: 2px;
+}
+
+.results-count {
+  color: #999999;
+  font-size: 0.9rem;
+  text-align: right;
+  padding-top: 0.5rem;
+}
+
+/* Table View Styles */
+.table-container {
+  overflow-x: auto;
+  border: 1px solid #CCCCCC;
+  border-radius: 2px;
+  margin-bottom: 1rem;
+  background-color: white;
+}
+
+.groups-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.groups-table thead {
+  background-color: #F2F2F2;
+}
+
+.groups-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #262626;
+  font-size: 0.95rem;
+  border-bottom: 2px solid #CCCCCC;
+}
+
+.groups-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #E6E6E6;
+  color: #595959;
+}
+
+.groups-table tbody tr:hover {
+  background-color: #F8F9FA;
+}
+
+.groups-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.groups-table .group-name {
+  font-weight: 500;
+  color: #262626;
+}
+
+.groups-table .group-description {
+  line-height: 1.5;
+  margin: 0;
+}
+
+.action-cell {
+  text-align: center;
+  width: 150px;
+}
+
+.no-results-table {
+  text-align: center;
+  padding: 2rem !important;
+  color: #999999;
+  font-style: italic;
+}
+
