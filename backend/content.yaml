@@ -40,6 +40,8 @@ navigation:
         path: "/forms/contact"
       - label: "Direct Observation Form"
         path: "/forms/direct-observation"
+      - label: "ETC Assessment Form"
+        path: "/forms/etc-assessment"
       - label: "Assessment Registration"
         path: "#"
         externalUrl: "https://forms.monday.com/forms/d1767bd198eecd6e6b91a0011f1daa7e?r=euc1"
@@ -86,42 +88,15 @@ sections:
       - name: "Contact Registration"
         url: "/forms/contact"
         internal: true
-      - name: "ReliefWeb"
-        url: "https://reliefweb.int"
+      - name: "ReliefWeb - Melissa"
+        url: "https://response.reliefweb.int/latin-america-and-caribbean/hurricane-melissa"
         internal: false
-      - name: "Humanitarian Data Exchange"
-        url: "https://data.humdata.org"
+      - name: "Coordination Architecture"
+        url: "https://reliefweb.int/report/jamaica/jamaica-hurricane-melissa-coordination-structure-alignment-emergency-inter-agency-sectors-and-government-7-november-2025"
         internal: false
-
-  - title: "Data & Analytics"
-    links:
-      - name: "Interactive Dashboards"
-        url: "/dashboards"
-        internal: true
-      - name: "Data Collection Forms"
-        url: "/forms"
-        internal: true
-      - name: "Calendar"
-        url: "/calendar"
-        internal: true
-      - name: "Reports Archive"
-        url: "#"
-        internal: true
-
-  - title: "Resources by Sector"
-    links:
-      - name: "Shelter Resources"
-        url: "/sectors/shelter"
-        internal: true
-      - name: "Protection Resources"
-        url: "/sectors/protection"
-        internal: true
-      - name: "WASH Resources"
-        url: "/sectors/wash"
-        internal: true
-      - name: "Health Resources"
-        url: "/sectors/health"
-        internal: true
+      - name: "MapAction Jamaica Maps"
+        url: "https://maps.mapaction.org/event/2025-jam-001"
+        internal: false
 
   - title: "Contacts & Support"
     links:
@@ -130,12 +105,6 @@ sections:
         internal: true
       - name: "Register Your Contact"
         url: "/forms/contact"
-        internal: true
-      - name: "Support & Help"
-        url: "#"
-        internal: true
-      - name: "System Updates"
-        url: "#"
         internal: true
 
 about:
@@ -175,6 +144,10 @@ forms:
     title: "Assessment Form Registration"
     description: "Register assessments that are ongoing in the field."
     embedUrl: "https://forms.monday.com/forms/d1767bd198eecd6e6b91a0011f1daa7e?r=euc1"
+  etc-assessment:
+    title: "ETC Assessment Form"
+    description: "Emergency Telecommunications Cluster Assessment Form"
+    embedUrl: "https://ee-eu.kobotoolbox.org/i/AAPGQRxB"
 
 # Sector pages
 sectors:
@@ -254,7 +227,11 @@ resources:
           description: "Open humanitarian data platform"
           url: "https://data.humdata.org"
           type: "external"
-        - name: "OCHA Services"
-          description: "UN OCHA coordination tools"
-          url: "https://www.unocha.org/our-work/coordination/tools-and-services"
+        - name: "IM Handbook"
+          description: "IM practices and standards."
+          url: "https://norwegian-refugee-council.gitbook.io/information-management-handbook"
+          type: "external"
+        - name: "Jamaica: Hurricane Melissa Coordination Structure"
+          description: "Overview of the coordination structure for the Hurricane Melissa response in Jamaica."
+          url: "https://reliefweb.int/report/jamaica/jamaica-hurricane-melissa-coordination-structure-alignment-emergency-inter-agency-sectors-and-government-7-november-2025"
           type: "external"

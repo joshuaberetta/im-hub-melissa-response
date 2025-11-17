@@ -48,6 +48,9 @@ export default function ResourcesPage() {
     if (resource.type === 'download' && resource.url) {
       // Trigger download with authentication
       const token = localStorage.getItem('token')
+      // Extract filename from URL path
+      const filename = resource.url.split('/').pop() || resource.name
+      
       fetch(getApiUrl(resource.url), {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -58,7 +61,7 @@ export default function ResourcesPage() {
           const url = window.URL.createObjectURL(blob)
           const link = document.createElement('a')
           link.href = url
-          link.download = resource.name
+          link.download = filename
           document.body.appendChild(link)
           link.click()
           document.body.removeChild(link)
