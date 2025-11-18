@@ -15,7 +15,11 @@ interface Link {
   updated_at?: string
 }
 
-export default function LinksPage() {
+interface LinksPageProps {
+  isAuthenticated: boolean
+}
+
+export default function LinksPage({ isAuthenticated }: LinksPageProps) {
   const [links, setLinks] = useState<Link[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
@@ -38,11 +42,12 @@ export default function LinksPage() {
   const fetchLinks = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/links', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
+      const response = await fetch('/api/links', { headers })
       
       if (response.ok) {
         const data = await response.json()
@@ -65,12 +70,16 @@ export default function LinksPage() {
       const url = editingId ? `/api/links/${editingId}` : '/api/links'
       const method = editingId ? 'PUT' : 'POST'
 
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers,
         body: JSON.stringify(formData)
       })
 
@@ -229,25 +238,27 @@ export default function LinksPage() {
           >
             Copy Link
           </button>
-          <ActionsDropdown
-            actions={[
-              {
-                label: 'Edit',
-                icon: <EditIcon />,
-                onClick: () => handleEdit(link)
-              },
-              {
-                label: 'Delete',
-                icon: <DeleteIcon />,
-                onClick: () => handleDelete(link.id),
-                variant: 'danger'
-              }
-            ]}
-          />
+          {isAuthenticated && (
+            <ActionsDropdown
+              actions={[
+                {
+                  label: 'Edit',
+                  icon: <EditIcon />,
+                  onClick: () => handleEdit(link)
+                },
+                {
+                  label: 'Delete',
+                  icon: <DeleteIcon />,
+                  onClick: () => handleDelete(link.id),
+                  variant: 'danger'
+                }
+              ]}
+            />
+          )}
         </div>
       )
     }
-  ], [])
+  ], [isAuthenticated])
 
   if (loading) {
     return <div className="loading">Loading links...</div>
@@ -403,21 +414,23 @@ export default function LinksPage() {
                     <div key={link.id} className="group-card">
                       <div className="group-header">
                         <h3>{link.title}</h3>
-                        <ActionsDropdown
-                          actions={[
-                            {
-                              label: 'Edit',
-                              icon: <EditIcon />,
-                              onClick: () => handleEdit(link)
-                            },
-                            {
-                              label: 'Delete',
-                              icon: <DeleteIcon />,
-                              onClick: () => handleDelete(link.id),
-                              variant: 'danger'
-                            }
-                          ]}
-                        />
+                        {isAuthenticated && (
+                          <ActionsDropdown
+                            actions={[
+                              {
+                                label: 'Edit',
+                                icon: <EditIcon />,
+                                onClick: () => handleEdit(link)
+                              },
+                              {
+                                label: 'Delete',
+                                icon: <DeleteIcon />,
+                                onClick: () => handleDelete(link.id),
+                                variant: 'danger'
+                              }
+                            ]}
+                          />
+                        )}
                       </div>
                       
                       {link.description && (

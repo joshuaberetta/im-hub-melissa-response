@@ -16,6 +16,7 @@ import './Dashboard.css'
 
 interface DashboardProps {
   onLogout: () => void
+  isAuthenticated: boolean
 }
 
 interface NavItem {
@@ -27,26 +28,34 @@ interface NavItem {
   default?: string
 }
 
-export default function Dashboard({ onLogout }: DashboardProps) {
+export default function Dashboard({ onLogout, isAuthenticated }: DashboardProps) {
   const [navigation, setNavigation] = useState<NavItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     fetchNavigation()
-  }, [])
+  }, [isAuthenticated])
 
   const fetchNavigation = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(getApiUrl('/api/navigation'), {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
+      const response = await fetch(getApiUrl('/api/navigation'), { headers })
 
       if (response.ok) {
         const data = await response.json()
-        setNavigation(data.navigation || [])
+        let navItems = data.navigation || []
+        
+        // Filter out Admin link if user is not authenticated
+        if (!isAuthenticated) {
+          navItems = navItems.filter((item: NavItem) => item.path !== '/admin')
+        }
+        
+        setNavigation(navItems)
       }
     } catch (err) {
       console.error('Failed to fetch navigation', err)
@@ -61,7 +70,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
   return (
     <div className="dashboard">
-      <Header onLogout={onLogout} />
+      <Header onLogout={onLogout} isAuthenticated={isAuthenticated} />
       <Navigation navigation={navigation} />
       <main className="main-content">
         <div className="content-container">
@@ -73,10 +82,10 @@ export default function Dashboard({ onLogout }: DashboardProps) {
             <Route path="/forms/:formId" element={<FormPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/sectors/:sectorId" element={<SectorPage />} />
-            <Route path="/contacts" element={<ContactsPage />} />
+            <Route path="/contacts" element={<ContactsPage isAuthenticated={isAuthenticated} />} />
             <Route path="/resources" element={<ResourcesPage />} />
-            <Route path="/links" element={<LinksPage />} />
-            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/links" element={<LinksPage isAuthenticated={isAuthenticated} />} />
+            <Route path="/admin" element={<AdminPage isAuthenticated={isAuthenticated} />} />
           </Routes>
         </div>
       </main>

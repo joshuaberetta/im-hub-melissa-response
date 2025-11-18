@@ -39,11 +39,12 @@ export default function MapActionFeed({ limit = 5, showTitle = true }: MapAction
   const fetchMapActionFeed = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(getApiUrl('/api/mapaction-feed'), {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
+      const response = await fetch(getApiUrl('/api/mapaction-feed'), { headers })
 
       if (response.ok) {
         const data = await response.json()

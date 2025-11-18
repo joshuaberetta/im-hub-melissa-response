@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
@@ -354,6 +354,27 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
         )
 
 
+def verify_token_optional(authorization: Optional[str] = Header(None)):
+    """
+    Optional token verification - returns username if valid token provided, None otherwise.
+    Does not raise exception if no token or invalid token.
+    """
+    if not authorization:
+        return None
+    
+    if not authorization.startswith("Bearer "):
+        return None
+    
+    token = authorization.replace("Bearer ", "")
+    
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        return username
+    except (jwt.ExpiredSignatureError, jwt.JWTError):
+        return None
+
+
 def load_content_yaml():
     yaml_path = Path(__file__).parent / "content.yaml"
     try:
@@ -403,7 +424,8 @@ def verify(username: str = Depends(verify_token)):
 
 
 @app.get("/api/content")
-def get_content(username: str = Depends(verify_token)):
+def get_content():
+    """Public endpoint for site content - no auth required"""
     content = load_content_yaml()
     return content
 
@@ -421,13 +443,15 @@ def get_login_content():
 
 
 @app.get("/api/navigation")
-def get_navigation(username: str = Depends(verify_token)):
+def get_navigation():
+    """Public endpoint for navigation - no auth required"""
     content = load_content_yaml()
     return {"navigation": content.get("navigation", [])}
 
 
 @app.get("/api/dashboard/{dashboard_id}")
-def get_dashboard(dashboard_id: str, username: str = Depends(verify_token)):
+def get_dashboard(dashboard_id: str):
+    """Public endpoint for dashboard config - no auth required"""
     content = load_content_yaml()
     dashboards = content.get("dashboards", {})
     
@@ -438,7 +462,8 @@ def get_dashboard(dashboard_id: str, username: str = Depends(verify_token)):
 
 
 @app.get("/api/form/{form_id}")
-def get_form(form_id: str, username: str = Depends(verify_token)):
+def get_form(form_id: str):
+    """Public endpoint for form config - no auth required"""
     content = load_content_yaml()
     forms = content.get("forms", {})
     
@@ -449,8 +474,8 @@ def get_form(form_id: str, username: str = Depends(verify_token)):
 
 
 @app.get("/api/sector/{sector_id}")
-def get_sector(sector_id: str, username: str = Depends(verify_token)):
-    """Get sector information from markdown files"""
+def get_sector(sector_id: str):
+    """Get sector information from markdown files - public endpoint"""
     sectors_dir = Path(__file__).parent / "sectors"
     sector_file = sectors_dir / f"{sector_id}.md"
     
@@ -485,15 +510,16 @@ def get_sector(sector_id: str, username: str = Depends(verify_token)):
 
 
 @app.get("/api/resources")
-def get_resources(username: str = Depends(verify_token)):
+def get_resources():
+    """Public endpoint for resources - no auth required"""
     content = load_content_yaml()
     resources = content.get("resources", {})
     return resources
 
 
 @app.get("/api/files/{filename}")
-def download_file(filename: str, username: str = Depends(verify_token)):
-    """Download a file from the files directory"""
+def download_file(filename: str):
+    """Download a file from the files directory - public endpoint"""
     files_dir = Path(__file__).parent / "files"
     file_path = files_dir / filename
     
@@ -515,8 +541,8 @@ def download_file(filename: str, username: str = Depends(verify_token)):
 
 
 @app.get("/api/geojson/{filename}")
-def get_geojson(filename: str, username: str = Depends(verify_token)):
-    """Get GeoJSON administrative boundaries"""
+def get_geojson(filename: str):
+    """Get GeoJSON administrative boundaries - public endpoint"""
     geojson_dir = Path(__file__).parent / "geojson"
     file_path = geojson_dir / filename
     
@@ -563,9 +589,9 @@ def get_whatsapp_groups(
     include_deleted: bool = False,
     sector: Optional[str] = None,
     db: Session = Depends(get_db),
-    username: str = Depends(verify_token)
+    username: Optional[str] = Depends(verify_token_optional)
 ):
-    """Get all WhatsApp groups (optionally filter by approval status, deleted status, and sector)"""
+    """Get all WhatsApp groups - public endpoint for viewing"""
     query = db.query(DBWhatsAppGroup)
     
     # Filter out deleted groups unless specifically requested (for admin panel)
@@ -586,9 +612,9 @@ def get_whatsapp_groups(
 def create_whatsapp_group(
     group: WhatsAppGroupCreate,
     db: Session = Depends(get_db),
-    username: str = Depends(verify_token)
+    username: Optional[str] = Depends(verify_token_optional)
 ):
-    """Register a new WhatsApp group (auto-approved)"""
+    """Register a new WhatsApp group (auto-approved, no auth required)"""""
     db_group = DBWhatsAppGroup(
         name=group.name,
         sector=group.sector,
@@ -986,9 +1012,9 @@ def get_contacts(
     sector: Optional[str] = None,
     status: Optional[str] = None,
     db: Session = Depends(get_db),
-    username: str = Depends(verify_token)
+    username: Optional[str] = Depends(verify_token_optional)
 ):
-    """Get all contacts with optional filters"""
+    """Get all contacts with optional filters - public endpoint"""
     query = db.query(DBContact)
     
     # Filter out deleted contacts unless specifically requested
@@ -1112,8 +1138,8 @@ def restore_contact(
 
 
 @app.get("/api/mapaction-feed")
-async def get_mapaction_feed(username: str = Depends(verify_token)):
-    """Fetch and parse MapAction RSS feed"""
+async def get_mapaction_feed():
+    """Fetch and parse MapAction RSS feed - public endpoint"""
     feed_url = "https://maps.mapaction.org/feeds/custom.atom?groups=2025-jam-001"
     
     try:
@@ -1167,9 +1193,9 @@ def get_announcements(
     include_deleted: bool = False,
     limit: Optional[int] = None,
     db: Session = Depends(get_db),
-    username: str = Depends(verify_token)
+    username: Optional[str] = Depends(verify_token_optional)
 ):
-    """Get announcements from database"""
+    """Get announcements from database - public endpoint"""
     query = db.query(DBAnnouncement)
     
     # Filter out deleted announcements unless specifically requested
@@ -1401,9 +1427,9 @@ def get_announcements_rss(db: Session = Depends(get_db)):
 def get_links(
     include_deleted: bool = False,
     db: Session = Depends(get_db),
-    username: str = Depends(verify_token)
+    username: Optional[str] = Depends(verify_token_optional)
 ):
-    """Get all links (optionally include deleted)"""
+    """Get all links (optionally include deleted) - no auth required for viewing"""""
     query = db.query(DBLink)
     
     # Filter out deleted links unless specifically requested
@@ -1418,9 +1444,9 @@ def get_links(
 def create_link(
     link: LinkCreate,
     db: Session = Depends(get_db),
-    username: str = Depends(verify_token)
+    username: Optional[str] = Depends(verify_token_optional)
 ):
-    """Create a new shortened link"""
+    """Create a new shortened link (no auth required)"""
     # Check if slug already exists
     existing_link = db.query(DBLink).filter(DBLink.slug == link.slug).first()
     if existing_link:

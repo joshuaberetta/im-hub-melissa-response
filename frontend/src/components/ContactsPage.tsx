@@ -55,7 +55,11 @@ interface ContactFormData {
   notes: string
 }
 
-export default function ContactsPage() {
+interface ContactsPageProps {
+  isAuthenticated: boolean
+}
+
+export default function ContactsPage({ isAuthenticated }: ContactsPageProps) {
   const contactDashboardUrl = "https://app.powerbi.com/view?r=eyJrIjoiYmNiYmMwN2ItYmMwMy00M2Y4LWEzODgtMDNkYjk3YWM0ZWJjIiwidCI6IjBmOWUzNWRiLTU0NGYtNGY2MC1iZGNjLTVlYTQxNmU2ZGM3MCIsImMiOjh9"
   const registerFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfDz9Z3Uvs6Am4yIH-ik3bJM6Lv9VEYu6zZjUjCdw6p55pnhA/viewform"
 
@@ -112,11 +116,12 @@ export default function ContactsPage() {
   const fetchGroups = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/whatsapp-groups', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
+      const response = await fetch('/api/whatsapp-groups', { headers })
       
       if (response.ok) {
         const data = await response.json()
@@ -130,11 +135,12 @@ export default function ContactsPage() {
   const fetchContacts = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/contacts', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
+      const response = await fetch('/api/contacts', { headers })
       
       if (response.ok) {
         const data = await response.json()
@@ -150,10 +156,13 @@ export default function ContactsPage() {
   const fetchParishGeoJSON = async () => {
     try {
       const token = localStorage.getItem('token')
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
       const response = await fetch('/api/geojson/jamaica-parishes.geojson', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
+        headers,
         cache: 'no-cache'
       })
       
@@ -174,12 +183,16 @@ export default function ContactsPage() {
 
     try {
       const token = localStorage.getItem('token')
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
       const response = await fetch('/api/whatsapp-groups', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers,
         body: JSON.stringify(formData)
       })
 
@@ -582,25 +595,27 @@ export default function ContactsPage() {
           >
             Join Group ↗
           </a>
-          <ActionsDropdown
-            actions={[
-              {
-                label: 'Edit',
-                icon: <EditIcon />,
-                onClick: () => handleEditGroup(group)
-              },
-              {
-                label: 'Delete',
-                icon: <DeleteIcon />,
-                onClick: () => handleDeleteGroup(group.id),
-                variant: 'danger'
-              }
-            ]}
-          />
+          {isAuthenticated && (
+            <ActionsDropdown
+              actions={[
+                {
+                  label: 'Edit',
+                  icon: <EditIcon />,
+                  onClick: () => handleEditGroup(group)
+                },
+                {
+                  label: 'Delete',
+                  icon: <DeleteIcon />,
+                  onClick: () => handleDeleteGroup(group.id),
+                  variant: 'danger'
+                }
+              ]}
+            />
+          )}
         </div>
       )
     }
-  ], [])
+  ], [isAuthenticated])
 
   // Define table columns for contacts
   const contactTableColumns = useMemo(() => [
@@ -1298,21 +1313,23 @@ export default function ContactsPage() {
                           >
                             Join Group ↗
                           </a>
-                          <ActionsDropdown
-                            actions={[
-                              {
-                                label: 'Edit',
-                                icon: <EditIcon />,
-                                onClick: () => handleEditGroup(group)
-                              },
-                              {
-                                label: 'Delete',
-                                icon: <DeleteIcon />,
-                                onClick: () => handleDeleteGroup(group.id),
-                                variant: 'danger'
-                              }
-                            ]}
-                          />
+                          {isAuthenticated && (
+                            <ActionsDropdown
+                              actions={[
+                                {
+                                  label: 'Edit',
+                                  icon: <EditIcon />,
+                                  onClick: () => handleEditGroup(group)
+                                },
+                                {
+                                  label: 'Delete',
+                                  icon: <DeleteIcon />,
+                                  onClick: () => handleDeleteGroup(group.id),
+                                  variant: 'danger'
+                                }
+                              ]}
+                            />
+                          )}
                         </div>
                       </div>
                     ))

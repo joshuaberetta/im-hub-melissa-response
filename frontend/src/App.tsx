@@ -24,10 +24,12 @@ function App() {
             setIsAuthenticated(true)
           } else {
             localStorage.removeItem('token')
+            setIsAuthenticated(false)
           }
         })
         .catch(() => {
           localStorage.removeItem('token')
+          setIsAuthenticated(false)
         })
         .finally(() => {
           setIsLoading(false)
@@ -63,9 +65,10 @@ function App() {
       <Route 
         path="/*" 
         element={
-          isAuthenticated ? 
-            <Dashboard onLogout={handleLogout} /> : 
-            <Navigate to="/login" replace />
+          <Dashboard 
+            onLogout={handleLogout} 
+            isAuthenticated={isAuthenticated}
+          />
         } 
       />
     </Routes>

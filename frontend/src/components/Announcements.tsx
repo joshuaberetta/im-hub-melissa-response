@@ -33,12 +33,13 @@ export default function Announcements({ limit }: AnnouncementsProps) {
       const url = limit 
         ? getApiUrl(`/api/announcements?limit=${limit}`)
         : getApiUrl('/api/announcements')
+      
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
         
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const response = await fetch(url, { headers })
 
       if (response.ok) {
         const data = await response.json()

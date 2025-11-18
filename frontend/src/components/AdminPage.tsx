@@ -67,7 +67,11 @@ interface Announcement {
   updated_at?: string
 }
 
-export default function AdminPage() {
+interface AdminPageProps {
+  isAuthenticated: boolean
+}
+
+export default function AdminPage({ isAuthenticated }: AdminPageProps) {
   const [activeTab, setActiveTab] = useState<'groups' | 'resources' | 'contacts' | 'users' | 'announcements'>('groups')
   const [groups, setGroups] = useState<WhatsAppGroup[]>([])
   const [resources, setResources] = useState<Resource[]>([])
@@ -506,6 +510,20 @@ export default function AdminPage() {
   const approvedContacts = contacts.filter(c => c.approved)
   const activeAnnouncements = announcements.filter(a => !a.deleted)
   const deletedAnnouncements = announcements.filter(a => a.deleted)
+
+  // Check if user is authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="admin-page">
+        <h2>Admin Panel</h2>
+        <p className="description">Manage user-submitted content and moderation</p>
+        <div className="message error">
+          <p>⚠️ Authentication required to access the Admin Panel.</p>
+          <p>Please <a href="/login" style={{ color: 'inherit', textDecoration: 'underline' }}>log in</a> to continue.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="admin-page">
