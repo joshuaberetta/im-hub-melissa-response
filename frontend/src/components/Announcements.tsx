@@ -3,7 +3,7 @@ import { getApiUrl } from '../config'
 import './Announcements.css'
 
 interface Announcement {
-  id: string
+  id: number
   title: string
   date: string
   priority: 'high' | 'medium' | 'normal' | 'low'
@@ -21,7 +21,7 @@ export default function Announcements({ limit }: AnnouncementsProps) {
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<number | null>(null)
 
   useEffect(() => {
     fetchAnnouncements()
@@ -72,7 +72,7 @@ export default function Announcements({ limit }: AnnouncementsProps) {
     return `priority-${priority}`
   }
 
-  const toggleExpanded = (id: string) => {
+  const toggleExpanded = (id: number) => {
     setExpandedId(expandedId === id ? null : id)
   }
 

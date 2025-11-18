@@ -285,6 +285,17 @@
   margin-bottom: 1rem;
 }
 
+.announcement-form {
+  background-color: #f8f9fa;
+  border: 2px solid #026CB6;
+  margin-bottom: 2rem;
+}
+
+.announcement-form h4 {
+  color: #026CB6;
+  margin-bottom: 1rem;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -306,19 +317,31 @@
 
 .form-group input[type="text"],
 .form-group input[type="email"],
-.form-group input[type="password"] {
+.form-group input[type="password"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
   padding: 0.6rem;
   border: 1px solid #CCCCCC;
   border-radius: 2px;
   font-size: 0.95rem;
+  font-family: inherit;
 }
 
 .form-group input[type="text"]:focus,
 .form-group input[type="email"]:focus,
-.form-group input[type="password"]:focus {
+.form-group input[type="password"]:focus,
+.form-group input[type="date"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: #026CB6;
   box-shadow: 0 0 0 2px rgba(2, 108, 182, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
 .form-group input[type="checkbox"] {
@@ -339,6 +362,61 @@
 .inactive-badge {
   color: #dc3545;
   font-size: 0.9rem;
+}
+
+.priority-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 2px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.priority-badge.priority-high {
+  background-color: #dc3545;
+  color: white;
+}
+
+.priority-badge.priority-medium {
+  background-color: #ffc107;
+  color: #262626;
+}
+
+.priority-badge.priority-normal {
+  background-color: #026CB6;
+  color: white;
+}
+
+.priority-badge.priority-low {
+  background-color: #6c757d;
+  color: white;
+}
+
+.item-card.priority-high {
+  border-left-color: #dc3545;
+}
+
+.item-card.priority-medium {
+  border-left-color: #ffc107;
+}
+
+.item-card.priority-normal {
+  border-left-color: #026CB6;
+}
+
+.item-card.priority-low {
+  border-left-color: #6c757d;
+}
+
+.announcement-preview {
+  margin-top: 0.5rem;
+}
+
+.announcement-preview strong {
+  display: block;
+  margin-bottom: 0.5rem;
 }
 
 @media (max-width: 768px) {

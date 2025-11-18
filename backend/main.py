@@ -29,6 +29,7 @@ from database import (
     ContactSubmission as DBContactSubmission,
     Contact as DBContact,
     User as DBUser,
+    Announcement as DBAnnouncement,
     seed_initial_data
 )
 
@@ -251,6 +252,41 @@ class UserResponse(BaseModel):
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
     last_login: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AnnouncementCreate(BaseModel):
+    title: str
+    content: str
+    date: Optional[str] = None  # ISO format date string
+    priority: str = "normal"  # "high", "medium", "normal", "low"
+    author: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
+class AnnouncementUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    date: Optional[str] = None
+    priority: Optional[str] = None
+    author: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
+class AnnouncementResponse(BaseModel):
+    id: int
+    title: str
+    content: str
+    date: str
+    priority: str
+    author: Optional[str] = None
+    tags: List[str]
+    approved: bool
+    deleted: bool
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -1097,79 +1133,176 @@ async def get_mapaction_feed(username: str = Depends(verify_token)):
 
 
 @app.get("/api/announcements")
-def get_announcements(username: str = Depends(verify_token), limit: Optional[int] = None):
-    """Get announcements from markdown files"""
-    announcements_dir = Path(__file__).parent / "announcements"
+def get_announcements(
+    include_deleted: bool = False,
+    limit: Optional[int] = None,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Get announcements from database"""
+    query = db.query(DBAnnouncement)
     
-    if not announcements_dir.exists():
-        return {"announcements": []}
+    # Filter out deleted announcements unless specifically requested
+    if not include_deleted:
+        query = query.filter(DBAnnouncement.deleted == False)
     
-    announcements = []
+    # Only show approved announcements
+    query = query.filter(DBAnnouncement.approved == True)
     
-    # Read all markdown files
-    for file_path in announcements_dir.glob("*.md"):
-        if file_path.name == "README.md":
-            continue
-            
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                post = frontmatter.load(f)
-                
-                # Convert markdown content to HTML
-                html_content = markdown.markdown(
-                    post.content,
-                    extensions=['extra', 'codehilite', 'nl2br']
-                )
-                
-                # Extract summary (first paragraph)
-                summary_match = re.search(r'<p>(.*?)</p>', html_content, re.DOTALL)
-                summary = summary_match.group(1) if summary_match else ""
-                
-                announcement = {
-                    "id": file_path.stem,
-                    "title": post.get("title", file_path.stem),
-                    "date": post.get("date", "").isoformat() if isinstance(post.get("date"), datetime) else str(post.get("date", "")),
-                    "priority": post.get("priority", "normal"),
-                    "author": post.get("author", ""),
-                    "tags": post.get("tags", []),
-                    "content": html_content,
-                    "summary": summary,
-                }
-                
-                announcements.append(announcement)
-                
-        except Exception as e:
-            print(f"Error processing {file_path}: {e}")
-            continue
-    
-    # Sort by date (newest first), then by priority
-    priority_order = {"high": 0, "medium": 1, "normal": 2, "low": 3}
-    announcements.sort(
-        key=lambda x: (
-            x.get("date", ""),
-            priority_order.get(x.get("priority", "normal"), 2)
-        ),
-        reverse=True
-    )
+    # Order by date descending (newest first), then by priority
+    query = query.order_by(DBAnnouncement.date.desc())
     
     # Apply limit if specified
     if limit:
-        announcements = announcements[:limit]
+        query = query.limit(limit)
     
-    return {"announcements": announcements}
+    announcements = query.all()
+    
+    # Convert to dict and add summary field
+    result = []
+    for announcement in announcements:
+        data = announcement.to_dict()
+        
+        # Extract summary (first paragraph) from content
+        summary_match = re.search(r'<p>(.*?)</p>', data['content'], re.DOTALL)
+        data['summary'] = summary_match.group(1) if summary_match else ""
+        
+        result.append(data)
+    
+    return {"announcements": result}
+
+
+@app.post("/api/announcements", response_model=AnnouncementResponse, status_code=status.HTTP_201_CREATED)
+def create_announcement(
+    announcement: AnnouncementCreate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Create a new announcement (admin only)"""
+    # Parse date if provided
+    announcement_date = datetime.utcnow()
+    if announcement.date:
+        try:
+            announcement_date = datetime.fromisoformat(announcement.date.replace('Z', '+00:00'))
+        except:
+            pass
+    
+    # Convert tags list to comma-separated string
+    tags_str = ','.join(announcement.tags) if announcement.tags else ''
+    
+    db_announcement = DBAnnouncement(
+        title=announcement.title,
+        content=announcement.content,
+        date=announcement_date,
+        priority=announcement.priority,
+        author=announcement.author or username,
+        tags=tags_str,
+        approved=True  # Auto-approved for admins
+    )
+    
+    db.add(db_announcement)
+    db.commit()
+    db.refresh(db_announcement)
+    
+    return db_announcement.to_dict()
+
+
+@app.put("/api/announcements/{announcement_id}", response_model=AnnouncementResponse)
+def update_announcement(
+    announcement_id: int,
+    announcement_update: AnnouncementUpdate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Update an announcement (admin only)"""
+    announcement = db.query(DBAnnouncement).filter(DBAnnouncement.id == announcement_id).first()
+    
+    if not announcement:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    
+    # Update fields
+    if announcement_update.title is not None:
+        announcement.title = announcement_update.title
+    if announcement_update.content is not None:
+        announcement.content = announcement_update.content
+    if announcement_update.date is not None:
+        try:
+            announcement.date = datetime.fromisoformat(announcement_update.date.replace('Z', '+00:00'))
+        except:
+            pass
+    if announcement_update.priority is not None:
+        announcement.priority = announcement_update.priority
+    if announcement_update.author is not None:
+        announcement.author = announcement_update.author
+    if announcement_update.tags is not None:
+        announcement.tags = ','.join(announcement_update.tags)
+    
+    announcement.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(announcement)
+    
+    return announcement.to_dict()
+
+
+@app.delete("/api/announcements/{announcement_id}")
+def delete_announcement(
+    announcement_id: int,
+    permanent: bool = False,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Soft delete or permanently delete an announcement (admin only)"""
+    announcement = db.query(DBAnnouncement).filter(DBAnnouncement.id == announcement_id).first()
+    
+    if not announcement:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    
+    if permanent:
+        db.delete(announcement)
+        db.commit()
+        return {"message": "Announcement permanently deleted", "id": announcement_id}
+    else:
+        announcement.deleted = True
+        announcement.updated_at = datetime.utcnow()
+        db.commit()
+        return {"message": "Announcement marked as deleted", "id": announcement_id}
+
+
+@app.patch("/api/announcements/{announcement_id}/restore")
+def restore_announcement(
+    announcement_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Restore a soft-deleted announcement (admin only)"""
+    announcement = db.query(DBAnnouncement).filter(DBAnnouncement.id == announcement_id).first()
+    
+    if not announcement:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    
+    announcement.deleted = False
+    announcement.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": "Announcement restored", "id": announcement_id}
 
 
 @app.get("/feeds/announcements.xml")
-def get_announcements_rss():
-    """Generate RSS feed for announcements - public endpoint"""
-    announcements_dir = Path(__file__).parent / "announcements"
+def get_announcements_rss(db: Session = Depends(get_db)):
+    """Generate RSS feed for announcements from database - public endpoint"""
     content = load_content_yaml()
     
     # Site information
     site_title = content.get("title", "IM Hub")
     site_url = os.getenv("SITE_URL", "http://localhost:8000")
     
-    if not announcements_dir.exists():
+    # Get announcements from database
+    announcements = db.query(DBAnnouncement).filter(
+        DBAnnouncement.deleted == False,
+        DBAnnouncement.approved == True
+    ).order_by(DBAnnouncement.date.desc()).limit(20).all()
+    
+    if not announcements:
         # Return empty feed
         rss = f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
@@ -1182,84 +1315,41 @@ def get_announcements_rss():
 </rss>"""
         return Response(content=rss, media_type="application/xml")
     
-    announcements = []
-    
-    # Read all markdown files
-    for file_path in announcements_dir.glob("*.md"):
-        if file_path.name == "README.md":
-            continue
-            
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                post = frontmatter.load(f)
-                
-                # Convert markdown content to HTML
-                html_content = markdown.markdown(
-                    post.content,
-                    extensions=['extra', 'codehilite', 'nl2br']
-                )
-                
-                # Get date
-                post_date = post.get("date")
-                if isinstance(post_date, datetime):
-                    pub_date = formatdate(time.mktime(post_date.timetuple()), usegmt=True)
-                else:
-                    try:
-                        dt = datetime.fromisoformat(str(post_date))
-                        pub_date = formatdate(time.mktime(dt.timetuple()), usegmt=True)
-                    except:
-                        pub_date = formatdate(usegmt=True)
-                
-                announcement = {
-                    "title": post.get("title", file_path.stem),
-                    "date": post.get("date", ""),
-                    "pub_date": pub_date,
-                    "priority": post.get("priority", "normal"),
-                    "author": post.get("author", "IM Team"),
-                    "tags": post.get("tags", []),
-                    "content": html_content,
-                    "id": file_path.stem,
-                }
-                
-                announcements.append(announcement)
-                
-        except Exception as e:
-            print(f"Error processing {file_path}: {e}")
-            continue
-    
-    # Sort by date (newest first)
-    announcements.sort(key=lambda x: x.get("date", ""), reverse=True)
-    
     # Build RSS feed
     items_xml = ""
-    for announcement in announcements[:20]:  # Limit to 20 most recent
-        title = announcement["title"].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        author = announcement["author"].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        content = announcement["content"]
+    for announcement in announcements:
+        data = announcement.to_dict()
+        
+        title = data["title"].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        author = (data.get("author") or "IM Team").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        content = data["content"]
+        
+        # Get publication date
+        pub_date = formatdate(time.mktime(announcement.date.timetuple()), usegmt=True)
         
         # Add priority badge to content
         priority_emoji = {"high": "🔴", "medium": "🟠", "normal": "🔵", "low": "⚪"}
-        priority_badge = priority_emoji.get(announcement["priority"], "🔵")
+        priority_badge = priority_emoji.get(data["priority"], "🔵")
         
         categories = ""
-        for tag in announcement["tags"]:
+        for tag in data["tags"]:
             tag_escaped = tag.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             categories += f"    <category>{tag_escaped}</category>\n"
         
-        item_url = f"{site_url}/#announcement-{announcement['id']}"
+        item_url = f"{site_url}/#announcement-{data['id']}"
         
         items_xml += f"""  <item>
     <title>{priority_badge} {title}</title>
     <link>{item_url}</link>
-    <guid isPermaLink="false">{announcement['id']}</guid>
-    <pubDate>{announcement['pub_date']}</pubDate>
+    <guid isPermaLink="false">announcement-{data['id']}</guid>
+    <pubDate>{pub_date}</pubDate>
     <author>{author}</author>
 {categories}    <description><![CDATA[{content}]]></description>
   </item>
 """
     
     # Get latest update time
-    latest_date = announcements[0]["pub_date"] if announcements else formatdate(usegmt=True)
+    latest_date = formatdate(time.mktime(announcements[0].date.timetuple()), usegmt=True) if announcements else formatdate(usegmt=True)
     
     rss = f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">

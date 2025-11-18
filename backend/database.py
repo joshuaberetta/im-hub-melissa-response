@@ -221,6 +221,41 @@ class User(Base):
         return data
 
 
+class Announcement(Base):
+    """Announcements for the IM Hub"""
+    __tablename__ = "announcements"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    content = Column(Text, nullable=False)  # HTML or markdown content
+    date = Column(DateTime, nullable=False, default=datetime.utcnow)
+    priority = Column(String(20), default="normal")  # "high", "medium", "normal", "low"
+    author = Column(String(200))
+    tags = Column(Text)  # Comma-separated tags
+    approved = Column(Boolean, default=True)  # Auto-approved for admins
+    deleted = Column(Boolean, default=False)  # Soft delete
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        tags_list = [tag.strip() for tag in self.tags.split(',')] if self.tags else []
+        
+        return {
+            "id": self.id,
+            "title": self.title,
+            "content": self.content,
+            "date": self.date.isoformat() if self.date else None,
+            "priority": self.priority,
+            "author": self.author,
+            "tags": tags_list,
+            "approved": self.approved,
+            "deleted": self.deleted,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
 # Database initialization
 def init_db():
     """Create all tables in the database"""
@@ -240,8 +275,12 @@ def get_db():
 
 # Seed some initial data for testing
 def seed_initial_data():
-    """Add some initial WhatsApp groups and default admin user for testing"""
+    """Add some initial WhatsApp groups, default admin user, and announcements for testing"""
     import os
+    from pathlib import Path
+    import frontmatter
+    import markdown
+    
     db = SessionLocal()
     try:
         # Create default admin user if no users exist
@@ -263,7 +302,68 @@ def seed_initial_data():
         else:
             print(f"Database already has {user_count} users")
         
-        # Check if we already have data
+        # Import announcements from markdown files if none exist
+        announcement_count = db.query(Announcement).count()
+        if announcement_count == 0:
+            announcements_dir = Path(__file__).parent / "announcements"
+            if announcements_dir.exists():
+                imported = 0
+                for file_path in announcements_dir.glob("*.md"):
+                    if file_path.name == "README.md":
+                        continue
+                    
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            post = frontmatter.load(f)
+                        
+                        # Convert markdown content to HTML
+                        html_content = markdown.markdown(
+                            post.content,
+                            extensions=['extra', 'codehilite', 'nl2br']
+                        )
+                        
+                        # Parse date
+                        post_date = post.get("date")
+                        if isinstance(post_date, datetime):
+                            announcement_date = post_date
+                        else:
+                            try:
+                                announcement_date = datetime.fromisoformat(str(post_date))
+                            except:
+                                announcement_date = datetime.utcnow()
+                        
+                        # Get tags as comma-separated string
+                        tags = post.get("tags", [])
+                        tags_str = ','.join(tags) if isinstance(tags, list) else ''
+                        
+                        # Create announcement
+                        announcement = Announcement(
+                            title=post.get("title", file_path.stem),
+                            content=html_content,
+                            date=announcement_date,
+                            priority=post.get("priority", "normal"),
+                            author=post.get("author", "IM Team"),
+                            tags=tags_str,
+                            approved=True,
+                            deleted=False
+                        )
+                        
+                        db.add(announcement)
+                        imported += 1
+                        
+                    except Exception as e:
+                        print(f"Error importing announcement from {file_path.name}: {e}")
+                        continue
+                
+                if imported > 0:
+                    db.commit()
+                    print(f"Imported {imported} announcements from markdown files")
+            else:
+                print("No announcements directory found")
+        else:
+            print(f"Database already has {announcement_count} announcements")
+        
+        # Check if we already have WhatsApp groups data
         existing_count = db.query(WhatsAppGroup).count()
         if existing_count > 0:
             print(f"Database already has {existing_count} WhatsApp groups")

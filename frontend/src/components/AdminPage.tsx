@@ -53,21 +53,46 @@ interface User {
   last_login?: string
 }
 
+interface Announcement {
+  id: number
+  title: string
+  content: string
+  date: string
+  priority: string
+  author?: string
+  tags: string[]
+  approved: boolean
+  deleted: boolean
+  created_at?: string
+  updated_at?: string
+}
+
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'groups' | 'resources' | 'contacts' | 'users'>('groups')
+  const [activeTab, setActiveTab] = useState<'groups' | 'resources' | 'contacts' | 'users' | 'announcements'>('groups')
   const [groups, setGroups] = useState<WhatsAppGroup[]>([])
   const [resources, setResources] = useState<Resource[]>([])
   const [contacts, setContacts] = useState<ContactSubmission[]>([])
   const [users, setUsers] = useState<User[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [showUserForm, setShowUserForm] = useState(false)
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null)
   const [newUser, setNewUser] = useState({
     username: '',
     password: '',
     full_name: '',
     email: '',
     is_admin: false
+  })
+  const [announcementForm, setAnnouncementForm] = useState({
+    title: '',
+    content: '',
+    date: new Date().toISOString().split('T')[0],
+    priority: 'normal',
+    author: '',
+    tags: ''
   })
 
   useEffect(() => {
@@ -110,6 +135,14 @@ export default function AdminPage() {
         if (response.ok) {
           const data = await response.json()
           setUsers(data)
+        }
+      } else if (activeTab === 'announcements') {
+        const response = await fetch('/api/announcements?include_deleted=true', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setAnnouncements(data.announcements || [])
         }
       }
     } catch (error) {
@@ -333,6 +366,137 @@ export default function AdminPage() {
     }
   }
 
+  const createAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const token = localStorage.getItem('token')
+    try {
+      const tags = announcementForm.tags.split(',').map(t => t.trim()).filter(t => t)
+      const response = await fetch('/api/announcements', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: announcementForm.title,
+          content: announcementForm.content,
+          date: announcementForm.date,
+          priority: announcementForm.priority,
+          author: announcementForm.author,
+          tags: tags
+        })
+      })
+      if (response.ok) {
+        showMessage('success', 'Announcement created successfully')
+        setShowAnnouncementForm(false)
+        setAnnouncementForm({
+          title: '',
+          content: '',
+          date: new Date().toISOString().split('T')[0],
+          priority: 'normal',
+          author: '',
+          tags: ''
+        })
+        fetchData()
+      } else {
+        const error = await response.json()
+        showMessage('error', error.detail || 'Failed to create announcement')
+      }
+    } catch (error) {
+      showMessage('error', 'Network error')
+    }
+  }
+
+  const updateAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingAnnouncement) return
+    
+    const token = localStorage.getItem('token')
+    try {
+      const tags = announcementForm.tags.split(',').map(t => t.trim()).filter(t => t)
+      const response = await fetch(`/api/announcements/${editingAnnouncement.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: announcementForm.title,
+          content: announcementForm.content,
+          date: announcementForm.date,
+          priority: announcementForm.priority,
+          author: announcementForm.author,
+          tags: tags
+        })
+      })
+      if (response.ok) {
+        showMessage('success', 'Announcement updated successfully')
+        setEditingAnnouncement(null)
+        setShowAnnouncementForm(false)
+        setAnnouncementForm({
+          title: '',
+          content: '',
+          date: new Date().toISOString().split('T')[0],
+          priority: 'normal',
+          author: '',
+          tags: ''
+        })
+        fetchData()
+      } else {
+        const error = await response.json()
+        showMessage('error', error.detail || 'Failed to update announcement')
+      }
+    } catch (error) {
+      showMessage('error', 'Network error')
+    }
+  }
+
+  const deleteAnnouncement = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this announcement?')) return
+    
+    const token = localStorage.getItem('token')
+    try {
+      const response = await fetch(`/api/announcements/${id}?permanent=true`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (response.ok) {
+        showMessage('success', 'Announcement deleted successfully')
+        fetchData()
+      } else {
+        showMessage('error', 'Failed to delete announcement')
+      }
+    } catch (error) {
+      showMessage('error', 'Network error')
+    }
+  }
+
+  const editAnnouncement = (announcement: Announcement) => {
+    setEditingAnnouncement(announcement)
+    setAnnouncementForm({
+      title: announcement.title,
+      content: announcement.content,
+      date: announcement.date.split('T')[0],
+      priority: announcement.priority,
+      author: announcement.author || '',
+      tags: announcement.tags.join(', ')
+    })
+    setShowAnnouncementForm(true)
+  }
+
+  const cancelAnnouncementEdit = () => {
+    setEditingAnnouncement(null)
+    setShowAnnouncementForm(false)
+    setAnnouncementForm({
+      title: '',
+      content: '',
+      date: new Date().toISOString().split('T')[0],
+      priority: 'normal',
+      author: '',
+      tags: ''
+    })
+  }
+
   const pendingGroups = groups.filter(g => !g.approved && !g.deleted)
   const approvedGroups = groups.filter(g => g.approved && !g.deleted)
   const deletedGroups = groups.filter(g => g.deleted)
@@ -340,6 +504,8 @@ export default function AdminPage() {
   const approvedResources = resources.filter(r => r.approved)
   const pendingContacts = contacts.filter(c => !c.approved)
   const approvedContacts = contacts.filter(c => c.approved)
+  const activeAnnouncements = announcements.filter(a => !a.deleted)
+  const deletedAnnouncements = announcements.filter(a => a.deleted)
 
   return (
     <div className="admin-page">
@@ -379,6 +545,12 @@ export default function AdminPage() {
           onClick={() => setActiveTab('users')}
         >
           Users
+        </button>
+        <button 
+          className={`tab ${activeTab === 'announcements' ? 'active' : ''}`}
+          onClick={() => setActiveTab('announcements')}
+        >
+          Announcements
         </button>
       </div>
 
@@ -691,6 +863,179 @@ export default function AdminPage() {
                   ))
                 )}
               </div>
+            </div>
+          )}
+
+          {activeTab === 'announcements' && (
+            <div className="announcements-section">
+              <div className="section-header">
+                <h3>Announcements ({activeAnnouncements.length})</h3>
+                <button 
+                  className="approve-btn"
+                  onClick={() => {
+                    if (showAnnouncementForm && editingAnnouncement) {
+                      cancelAnnouncementEdit()
+                    } else {
+                      setShowAnnouncementForm(!showAnnouncementForm)
+                    }
+                  }}
+                >
+                  {showAnnouncementForm ? '✗ Cancel' : '+ Create New Announcement'}
+                </button>
+              </div>
+
+              {showAnnouncementForm && (
+                <form className="announcement-form item-card" onSubmit={editingAnnouncement ? updateAnnouncement : createAnnouncement}>
+                  <h4>{editingAnnouncement ? 'Edit Announcement' : 'Create New Announcement'}</h4>
+                  
+                  <div className="form-group">
+                    <label htmlFor="title">Title *</label>
+                    <input
+                      type="text"
+                      id="title"
+                      value={announcementForm.title}
+                      onChange={(e) => setAnnouncementForm({...announcementForm, title: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="date">Date *</label>
+                      <input
+                        type="date"
+                        id="date"
+                        value={announcementForm.date}
+                        onChange={(e) => setAnnouncementForm({...announcementForm, date: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="priority">Priority *</label>
+                      <select
+                        id="priority"
+                        value={announcementForm.priority}
+                        onChange={(e) => setAnnouncementForm({...announcementForm, priority: e.target.value})}
+                        required
+                      >
+                        <option value="low">Low</option>
+                        <option value="normal">Normal</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="author">Author</label>
+                      <input
+                        type="text"
+                        id="author"
+                        value={announcementForm.author}
+                        onChange={(e) => setAnnouncementForm({...announcementForm, author: e.target.value})}
+                        placeholder="IM Team"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="tags">Tags (comma-separated)</label>
+                      <input
+                        type="text"
+                        id="tags"
+                        value={announcementForm.tags}
+                        onChange={(e) => setAnnouncementForm({...announcementForm, tags: e.target.value})}
+                        placeholder="e.g., forms, 5w, assessment"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="content">Content (HTML supported) *</label>
+                    <textarea
+                      id="content"
+                      value={announcementForm.content}
+                      onChange={(e) => setAnnouncementForm({...announcementForm, content: e.target.value})}
+                      rows={10}
+                      required
+                      placeholder="Use HTML tags like <p>, <strong>, <ul>, <a>, etc."
+                    />
+                  </div>
+
+                  <div className="form-actions">
+                    <button type="submit" className="approve-btn">
+                      {editingAnnouncement ? 'Update Announcement' : 'Create Announcement'}
+                    </button>
+                    <button 
+                      type="button" 
+                      className="delete-btn"
+                      onClick={cancelAnnouncementEdit}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              <h3>Active Announcements ({activeAnnouncements.length})</h3>
+              <div className="items-list">
+                {activeAnnouncements.length === 0 ? (
+                  <p className="no-items">No active announcements</p>
+                ) : (
+                  activeAnnouncements.map(announcement => (
+                    <div key={announcement.id} className={`item-card priority-${announcement.priority}`}>
+                      <div className="item-header">
+                        <h4>{announcement.title}</h4>
+                        <span className={`priority-badge priority-${announcement.priority}`}>
+                          {announcement.priority.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="item-details">
+                        <p><strong>Date:</strong> {new Date(announcement.date).toLocaleDateString()}</p>
+                        {announcement.author && <p><strong>Author:</strong> {announcement.author}</p>}
+                        {announcement.tags.length > 0 && (
+                          <p><strong>Tags:</strong> {announcement.tags.join(', ')}</p>
+                        )}
+                        <div className="announcement-preview">
+                          <strong>Content:</strong>
+                          <div dangerouslySetInnerHTML={{ __html: announcement.content.substring(0, 200) + (announcement.content.length > 200 ? '...' : '') }} />
+                        </div>
+                      </div>
+                      <div className="item-actions">
+                        <button 
+                          className="approve-btn" 
+                          onClick={() => editAnnouncement(announcement)}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button 
+                          className="delete-btn" 
+                          onClick={() => deleteAnnouncement(announcement.id)}
+                        >
+                          ✗ Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {deletedAnnouncements.length > 0 && (
+                <>
+                  <h3 className="deleted-header">Deleted ({deletedAnnouncements.length})</h3>
+                  <div className="items-list">
+                    {deletedAnnouncements.map(announcement => (
+                      <div key={announcement.id} className="item-card deleted">
+                        <div className="item-header">
+                          <h4>{announcement.title}</h4>
+                        </div>
+                        <div className="item-details">
+                          <p><strong>Date:</strong> {new Date(announcement.date).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
