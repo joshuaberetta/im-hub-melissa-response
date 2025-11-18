@@ -30,6 +30,7 @@ from database import (
     Contact as DBContact,
     User as DBUser,
     Announcement as DBAnnouncement,
+    Link as DBLink,
     seed_initial_data
 )
 
@@ -284,6 +285,35 @@ class AnnouncementResponse(BaseModel):
     author: Optional[str] = None
     tags: List[str]
     approved: bool
+    deleted: bool
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class LinkCreate(BaseModel):
+    title: str
+    slug: str
+    url: str
+    description: Optional[str] = None
+
+
+class LinkUpdate(BaseModel):
+    title: Optional[str] = None
+    slug: Optional[str] = None
+    url: Optional[str] = None
+    description: Optional[str] = None
+
+
+class LinkResponse(BaseModel):
+    id: int
+    title: str
+    slug: str
+    url: str
+    description: Optional[str] = None
+    created_by: Optional[str] = None
     deleted: bool
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
@@ -1366,6 +1396,156 @@ def get_announcements_rss(db: Session = Depends(get_db)):
     return Response(content=rss, media_type="application/xml")
 
 
+# Links endpoints
+@app.get("/api/links", response_model=List[LinkResponse])
+def get_links(
+    include_deleted: bool = False,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Get all links (optionally include deleted)"""
+    query = db.query(DBLink)
+    
+    # Filter out deleted links unless specifically requested
+    if not include_deleted:
+        query = query.filter(DBLink.deleted == False)
+    
+    links = query.order_by(DBLink.created_at.desc()).all()
+    return [link.to_dict() for link in links]
+
+
+@app.post("/api/links", response_model=LinkResponse, status_code=status.HTTP_201_CREATED)
+def create_link(
+    link: LinkCreate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Create a new shortened link"""
+    # Check if slug already exists
+    existing_link = db.query(DBLink).filter(DBLink.slug == link.slug).first()
+    if existing_link:
+        raise HTTPException(status_code=400, detail="Slug already exists. Please choose a different slug.")
+    
+    # Validate slug format (alphanumeric, hyphens, underscores only)
+    import re
+    if not re.match(r'^[a-zA-Z0-9_-]+$', link.slug):
+        raise HTTPException(status_code=400, detail="Slug can only contain letters, numbers, hyphens, and underscores.")
+    
+    db_link = DBLink(
+        title=link.title,
+        slug=link.slug,
+        url=link.url,
+        description=link.description,
+        created_by=username
+    )
+    
+    db.add(db_link)
+    db.commit()
+    db.refresh(db_link)
+    
+    return db_link.to_dict()
+
+
+@app.put("/api/links/{link_id}", response_model=LinkResponse)
+def update_link(
+    link_id: int,
+    link_update: LinkUpdate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Update a link"""
+    link = db.query(DBLink).filter(DBLink.id == link_id).first()
+    
+    if not link:
+        raise HTTPException(status_code=404, detail="Link not found")
+    
+    # Check if slug is being changed and if it's already taken
+    if link_update.slug is not None and link_update.slug != link.slug:
+        existing_link = db.query(DBLink).filter(DBLink.slug == link_update.slug).first()
+        if existing_link:
+            raise HTTPException(status_code=400, detail="Slug already exists. Please choose a different slug.")
+        
+        # Validate slug format
+        import re
+        if not re.match(r'^[a-zA-Z0-9_-]+$', link_update.slug):
+            raise HTTPException(status_code=400, detail="Slug can only contain letters, numbers, hyphens, and underscores.")
+    
+    # Update only provided fields
+    if link_update.title is not None:
+        link.title = link_update.title
+    if link_update.slug is not None:
+        link.slug = link_update.slug
+    if link_update.url is not None:
+        link.url = link_update.url
+    if link_update.description is not None:
+        link.description = link_update.description
+    
+    link.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(link)
+    
+    return link.to_dict()
+
+
+@app.delete("/api/links/{link_id}")
+def delete_link(
+    link_id: int,
+    permanent: bool = False,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Soft delete or permanently delete a link"""
+    link = db.query(DBLink).filter(DBLink.id == link_id).first()
+    
+    if not link:
+        raise HTTPException(status_code=404, detail="Link not found")
+    
+    if permanent:
+        db.delete(link)
+        db.commit()
+        return {"message": "Link permanently deleted", "id": link_id}
+    else:
+        link.deleted = True
+        link.updated_at = datetime.utcnow()
+        db.commit()
+        return {"message": "Link marked as deleted", "id": link_id}
+
+
+@app.patch("/api/links/{link_id}/restore")
+def restore_link(
+    link_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Restore a soft-deleted link"""
+    link = db.query(DBLink).filter(DBLink.id == link_id).first()
+    
+    if not link:
+        raise HTTPException(status_code=404, detail="Link not found")
+    
+    link.deleted = False
+    link.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": "Link restored", "id": link_id}
+
+
+@app.get("/link/{slug}")
+def redirect_link(slug: str, db: Session = Depends(get_db)):
+    """Public endpoint to redirect from short URL to destination - no auth required"""
+    link = db.query(DBLink).filter(
+        DBLink.slug == slug,
+        DBLink.deleted == False
+    ).first()
+    
+    if not link:
+        raise HTTPException(status_code=404, detail="Link not found")
+    
+    # Redirect to the destination URL
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url=link.url, status_code=302)
+
+
 # Serve frontend static files in production
 frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
 print(f"Looking for frontend at: {frontend_dist}")
@@ -1384,7 +1564,7 @@ if frontend_dist.exists():
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
         """Serve frontend for all non-API routes"""
-        if full_path.startswith("api/") or full_path.startswith("feeds/"):
+        if full_path.startswith("api/") or full_path.startswith("feeds/") or full_path.startswith("link/"):
             raise HTTPException(status_code=404, detail="API endpoint not found")
         
         file_path = frontend_dist / full_path

@@ -143,7 +143,29 @@ Render's free tier:
 - 750 hours/month of runtime
 - Good for demos and development
 
-For production, consider upgrading to a paid plan.
+**⚠️ CRITICAL: No Persistent Storage on Free Tier**
+
+The free tier does **not** include persistent disk storage. This means:
+
+- **SQLite database is ephemeral** - stored on temporary filesystem
+- **Data is lost on every rebuild or restart**, including:
+  - User accounts created through admin panel
+  - Announcements created through UI
+  - Contacts and other user-submitted data
+  - Any changes made after deployment
+
+**What's preserved:**
+- Code and configuration files
+- Seed data (recreated on each restart)
+
+**Solutions:**
+1. **For production**: Upgrade to Render Starter plan ($7/month) with persistent disk
+2. **Better**: Switch to PostgreSQL (free tier available, data persists)
+3. **For demo/testing**: Accept data resets, use seed data
+
+See `DATABASE_PERSISTENCE_ISSUE.md` for detailed solutions.
+
+For production, consider upgrading to a paid plan or using PostgreSQL.
 
 ## Custom Domain
 

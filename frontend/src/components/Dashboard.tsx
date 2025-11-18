@@ -10,6 +10,7 @@ import CalendarPage from './CalendarPage'
 import ContactsPage from './ContactsPage'
 import ResourcesPage from './ResourcesPage'
 import AdminPage from './AdminPage'
+import LinksPage from './LinksPage'
 import { getApiUrl } from '../config'
 import './Dashboard.css'
 
@@ -74,6 +75,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
             <Route path="/sectors/:sectorId" element={<SectorPage />} />
             <Route path="/contacts" element={<ContactsPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
+            <Route path="/links" element={<LinksPage />} />
             <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </div>

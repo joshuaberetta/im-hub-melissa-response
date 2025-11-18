@@ -73,6 +73,10 @@ navigation:
     path: "/resources"
     type: "link"
 
+  - label: "Links"
+    path: "/links"
+    type: "link"
+
   - label: "Admin"
     path: "/admin"
     type: "link"

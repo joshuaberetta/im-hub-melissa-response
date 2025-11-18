@@ -264,6 +264,35 @@ class Announcement(Base):
         }
 
 
+class Link(Base):
+    """URL shortener links"""
+    __tablename__ = "links"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    slug = Column(String(100), unique=True, nullable=False, index=True)  # Short URL identifier
+    url = Column(String(1000), nullable=False)  # Destination URL
+    description = Column(Text)  # Optional description
+    created_by = Column(String(200))  # Username who created it
+    deleted = Column(Boolean, default=False)  # Soft delete flag
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        return {
+            "id": self.id,
+            "title": self.title,
+            "slug": self.slug,
+            "url": self.url,
+            "description": self.description,
+            "created_by": self.created_by,
+            "deleted": self.deleted,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
 # Database initialization
 def init_db():
     """Create all tables in the database"""
