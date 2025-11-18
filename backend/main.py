@@ -27,6 +27,7 @@ from database import (
     WhatsAppGroup as DBWhatsAppGroup,
     Resource as DBResource,
     ContactSubmission as DBContactSubmission,
+    Contact as DBContact,
     User as DBUser,
     seed_initial_data
 )
@@ -160,6 +161,62 @@ class ContactSubmissionResponse(BaseModel):
     role: Optional[str] = None
     location: Optional[str] = None
     additional_info: Optional[str] = None
+    approved: bool
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ContactCreate(BaseModel):
+    name: str
+    organization: str
+    position: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    sector: Optional[str] = None
+    parish: Optional[str] = None
+    community: Optional[str] = None
+    latitude: Optional[str] = None
+    longitude: Optional[str] = None
+    location_type: str = "field"  # "field", "remote", "office", "mobile"
+    status: str = "active"  # "active", "inactive", "deployed"
+    notes: Optional[str] = None
+
+
+class ContactUpdate(BaseModel):
+    name: Optional[str] = None
+    organization: Optional[str] = None
+    position: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    sector: Optional[str] = None
+    parish: Optional[str] = None
+    community: Optional[str] = None
+    latitude: Optional[str] = None
+    longitude: Optional[str] = None
+    location_type: Optional[str] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class ContactResponse(BaseModel):
+    id: int
+    name: str
+    organization: str
+    position: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    sector: Optional[str] = None
+    parish: Optional[str] = None
+    community: Optional[str] = None
+    latitude: Optional[str] = None
+    longitude: Optional[str] = None
+    location_type: str
+    status: str
+    notes: Optional[str] = None
+    deleted: bool
     approved: bool
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
@@ -388,6 +445,33 @@ def download_file(filename: str, username: str = Depends(verify_token)):
         path=str(file_path),
         filename=filename,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+
+@app.get("/api/geojson/{filename}")
+def get_geojson(filename: str, username: str = Depends(verify_token)):
+    """Get GeoJSON administrative boundaries"""
+    geojson_dir = Path(__file__).parent / "geojson"
+    file_path = geojson_dir / filename
+    
+    # Security: prevent directory traversal
+    if ".." in filename or filename.startswith("/") or filename.startswith("\\"):
+        raise HTTPException(status_code=403, detail="Invalid filename")
+    
+    # Only allow .geojson and .json files
+    if not filename.endswith(('.geojson', '.json')):
+        raise HTTPException(status_code=403, detail="Only GeoJSON files are allowed")
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="GeoJSON file not found")
+        
+    if not file_path.is_file():
+        raise HTTPException(status_code=404, detail="Not a file")
+    
+    return FileResponse(
+        path=str(file_path),
+        filename=filename,
+        media_type="application/geo+json"
     )
 
 
@@ -825,6 +909,140 @@ def delete_user(
     db.commit()
     
     return {"message": "User deleted", "id": user_id}
+
+
+# Contacts endpoints
+@app.get("/api/contacts", response_model=List[ContactResponse])
+def get_contacts(
+    include_deleted: bool = False,
+    location_type: Optional[str] = None,
+    parish: Optional[str] = None,
+    sector: Optional[str] = None,
+    status: Optional[str] = None,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Get all contacts with optional filters"""
+    query = db.query(DBContact)
+    
+    # Filter out deleted contacts unless specifically requested
+    if not include_deleted:
+        query = query.filter(DBContact.deleted == False)
+    
+    # Apply filters
+    if location_type:
+        query = query.filter(DBContact.location_type == location_type)
+    
+    if parish:
+        query = query.filter(DBContact.parish == parish)
+    
+    if sector:
+        query = query.filter(DBContact.sector == sector)
+    
+    if status:
+        query = query.filter(DBContact.status == status)
+    
+    contacts = query.order_by(DBContact.organization, DBContact.name).all()
+    return [contact.to_dict() for contact in contacts]
+
+
+@app.post("/api/contacts", response_model=ContactResponse, status_code=status.HTTP_201_CREATED)
+def create_contact(
+    contact: ContactCreate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Create a new contact"""
+    db_contact = DBContact(
+        name=contact.name,
+        organization=contact.organization,
+        position=contact.position,
+        email=contact.email,
+        phone=contact.phone,
+        sector=contact.sector,
+        parish=contact.parish,
+        community=contact.community,
+        latitude=contact.latitude,
+        longitude=contact.longitude,
+        location_type=contact.location_type,
+        status=contact.status,
+        notes=contact.notes,
+        approved=True
+    )
+    
+    db.add(db_contact)
+    db.commit()
+    db.refresh(db_contact)
+    
+    return db_contact.to_dict()
+
+
+@app.put("/api/contacts/{contact_id}", response_model=ContactResponse)
+def update_contact(
+    contact_id: int,
+    contact_update: ContactUpdate,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Update a contact"""
+    contact = db.query(DBContact).filter(DBContact.id == contact_id).first()
+    
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    
+    # Update only provided fields
+    update_data = contact_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(contact, field, value)
+    
+    contact.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(contact)
+    
+    return contact.to_dict()
+
+
+@app.delete("/api/contacts/{contact_id}")
+def delete_contact(
+    contact_id: int,
+    permanent: bool = False,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Soft delete or permanently delete a contact"""
+    contact = db.query(DBContact).filter(DBContact.id == contact_id).first()
+    
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    
+    if permanent:
+        db.delete(contact)
+        db.commit()
+        return {"message": "Contact permanently deleted", "id": contact_id}
+    else:
+        contact.deleted = True
+        contact.updated_at = datetime.utcnow()
+        db.commit()
+        return {"message": "Contact marked as deleted", "id": contact_id}
+
+
+@app.patch("/api/contacts/{contact_id}/restore")
+def restore_contact(
+    contact_id: int,
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
+):
+    """Restore a soft-deleted contact"""
+    contact = db.query(DBContact).filter(DBContact.id == contact_id).first()
+    
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    
+    contact.deleted = False
+    contact.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": "Contact restored", "id": contact_id}
 
 
 @app.get("/api/mapaction-feed")

@@ -128,6 +128,59 @@ class ContactSubmission(Base):
         }
 
 
+class Contact(Base):
+    """Contact directory with location mapping"""
+    __tablename__ = "contacts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False)
+    organization = Column(String(200), nullable=False)
+    position = Column(String(200))
+    email = Column(String(200))
+    phone = Column(String(50))
+    sector = Column(String(100))
+    
+    # Location information
+    parish = Column(String(100))  # Administrative level 1
+    community = Column(String(200))  # Administrative level 2 or locality
+    latitude = Column(String(50))  # Store as string to preserve precision
+    longitude = Column(String(50))
+    
+    # Deployment status
+    location_type = Column(String(50), default="field")  # "field", "remote", "office", "mobile"
+    status = Column(String(50), default="active")  # "active", "inactive", "deployed"
+    
+    # Additional metadata
+    notes = Column(Text)
+    deleted = Column(Boolean, default=False)
+    approved = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "organization": self.organization,
+            "position": self.position,
+            "email": self.email,
+            "phone": self.phone,
+            "sector": self.sector,
+            "parish": self.parish,
+            "community": self.community,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
+            "location_type": self.location_type,
+            "status": self.status,
+            "notes": self.notes,
+            "deleted": self.deleted,
+            "approved": self.approved,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
 class User(Base):
     """User accounts for authentication"""
     __tablename__ = "users"

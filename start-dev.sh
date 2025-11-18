@@ -13,7 +13,7 @@ fi
 # Check if frontend dependencies are installed
 if [ ! -d "frontend/node_modules" ]; then
     echo "Installing frontend dependencies..."
-    cd frontend && npm install && cd ..
+    cd frontend && npm install --legacy-peer-deps && cd ..
 fi
 
 echo ""

@@ -5,6 +5,7 @@
 
 .table-wrapper {
   overflow-x: auto;
+  overflow-y: visible;
   border: 1px solid #CCCCCC;
   border-radius: 2px;
   margin-bottom: 1rem;
@@ -14,6 +15,7 @@
 .paginated-table {
   width: 100%;
   border-collapse: collapse;
+  position: relative;
 }
 
 .paginated-table thead {
@@ -33,6 +35,12 @@
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #E6E6E6;
   color: #595959;
+}
+
+/* Ensure actions column doesn't get clipped */
+.paginated-table td:last-child {
+  position: relative;
+  overflow: visible;
 }
 
 .paginated-table tbody tr:hover {

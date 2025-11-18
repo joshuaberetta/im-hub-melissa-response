@@ -6,6 +6,6 @@ pip install -r backend/requirements.txt
 
 # Build frontend
 cd frontend
-npm install
+npm install --legacy-peer-deps
 npm run build
 cd ..

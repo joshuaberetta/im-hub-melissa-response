@@ -75,6 +75,8 @@
   font-size: 1.15rem;
   font-weight: 600;
   line-height: 1.4;
+  word-wrap: break-word;
+  flex: 1;
 }
 
 .map-summary {

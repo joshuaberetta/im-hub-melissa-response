@@ -103,8 +103,10 @@ cd frontend
 
 2. Install dependencies:
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
+
+**Note:** The `--legacy-peer-deps` flag is required for React 19 compatibility with react-leaflet.
 
 3. Create .env file:
 ```bash
