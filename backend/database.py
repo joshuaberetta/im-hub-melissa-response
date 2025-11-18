@@ -8,9 +8,17 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from datetime import datetime
 from pathlib import Path
 import bcrypt
+import os
 
 # Database file location
-DB_PATH = Path(__file__).parent / "imhub.db"
+# Use persistent disk on Render, local file in development
+if os.getenv('RENDER'):
+    # Production on Render: use persistent disk
+    DB_PATH = Path('/var/data/imhub.db')
+else:
+    # Development: use local file
+    DB_PATH = Path(__file__).parent / "imhub.db"
+
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 # Create engine
