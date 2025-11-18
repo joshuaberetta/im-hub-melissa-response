@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import './ContactsPage.css'
 import PaginatedTable from './PaginatedTable'
 import ActionsDropdown, { EditIcon, DeleteIcon } from './ActionsDropdown'
@@ -39,7 +39,7 @@ export default function ContactsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [editingId, setEditingId] = useState<number | null>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  // const dropdownRef = useRef<HTMLDivElement>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
@@ -270,7 +270,7 @@ export default function ContactsPage() {
   }, [whatsappGroups, sectorFilter, searchQuery])
 
   // Pagination
-  const totalPages = Math.ceil(filteredGroups.length / itemsPerPage)
+  // const totalPages = Math.ceil(filteredGroups.length / itemsPerPage)
   const paginatedGroups = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage
     return filteredGroups.slice(startIndex, startIndex + itemsPerPage)

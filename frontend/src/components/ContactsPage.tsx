@@ -528,13 +528,13 @@ export default function ContactsPage() {
   }, [contacts, sectorFilter, locationTypeFilter, parishFilter, statusFilter, searchQuery])
 
   // Pagination
-  const totalPagesGroups = Math.ceil(filteredGroups.length / itemsPerPage)
+  // const totalPagesGroups = Math.ceil(filteredGroups.length / itemsPerPage)
   const paginatedGroups = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage
     return filteredGroups.slice(startIndex, startIndex + itemsPerPage)
   }, [filteredGroups, currentPage, itemsPerPage])
 
-  const totalPagesContacts = Math.ceil(filteredContacts.length / itemsPerPage)
+  // const totalPagesContacts = Math.ceil(filteredContacts.length / itemsPerPage)
   const paginatedContacts = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage
     return filteredContacts.slice(startIndex, startIndex + itemsPerPage)
