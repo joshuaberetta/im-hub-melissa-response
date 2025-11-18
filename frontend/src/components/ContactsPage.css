@@ -819,4 +819,146 @@
   font-style: italic;
 }
 
+/* QR Code Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.qr-modal {
+  max-width: 500px;
+  padding: 2rem;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #E6F2FA;
+}
+
+.modal-header h3 {
+  color: #026CB6;
+  font-size: 1.5rem;
+  margin: 0;
+  flex: 1;
+  padding-right: 1rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #999999;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background-color: #F8F9FA;
+  color: #262626;
+}
+
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 0;
+}
+
+.qr-container canvas {
+  border: 4px solid #E6F2FA;
+  border-radius: 8px;
+  background-color: white;
+}
+
+.qr-info {
+  text-align: center;
+  color: #595959;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.qr-info code {
+  display: block;
+  background-color: #E6F2FA;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  color: #026CB6;
+  margin-top: 0.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #E6F2FA;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .qr-modal {
+    padding: 1.5rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .qr-container canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions .submit-button,
+  .modal-actions .cancel-button {
+    width: 100%;
+  }
+}
 

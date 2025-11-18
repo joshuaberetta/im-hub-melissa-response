@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import './ContactsPage.css'
 import PaginatedTable from './PaginatedTable'
 import ActionsDropdown, { EditIcon, DeleteIcon } from './ActionsDropdown'
+import { QRCodeCanvas } from 'qrcode.react'
 
 interface Link {
   id: number
@@ -34,6 +35,7 @@ export default function LinksPage({ isAuthenticated }: LinksPageProps) {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
+  const [qrModalLink, setQrModalLink] = useState<Link | null>(null)
 
   useEffect(() => {
     fetchLinks()
@@ -178,6 +180,25 @@ export default function LinksPage({ isAuthenticated }: LinksPageProps) {
     setTimeout(() => setSubmitMessage(null), 3000)
   }
 
+  const handleDownloadQR = (link: Link) => {
+    // Find the canvas element in the modal
+    const canvas = document.querySelector('.qr-modal canvas') as HTMLCanvasElement
+    if (!canvas) return
+
+    // Convert canvas to blob and download
+    canvas.toBlob((blob) => {
+      if (!blob) return
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `qr-${link.slug}.png`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    })
+  }
+
   // Filter links based on search query
   const filteredLinks = useMemo(() => {
     let filtered = links
@@ -237,6 +258,12 @@ export default function LinksPage({ isAuthenticated }: LinksPageProps) {
             onClick={() => handleCopyShortLink(link.slug)}
           >
             Copy Link
+          </button>
+          <button
+            className="join-button table-join"
+            onClick={() => setQrModalLink(link)}
+          >
+            QR Code
           </button>
           {isAuthenticated && (
             <ActionsDropdown
@@ -461,7 +488,13 @@ export default function LinksPage({ isAuthenticated }: LinksPageProps) {
                           className="join-button"
                           onClick={() => handleCopyShortLink(link.slug)}
                         >
-                          📋 Copy Short Link
+                          Copy Link
+                        </button>
+                        <button
+                          className="join-button"
+                          onClick={() => setQrModalLink(link)}
+                        >
+                          QR Code
                         </button>
                         {link.created_by && (
                           <span className="created-by-text">
@@ -489,6 +522,53 @@ export default function LinksPage({ isAuthenticated }: LinksPageProps) {
           </>
         )}
       </div>
+
+      {/* QR Code Modal */}
+      {qrModalLink && (
+        <div className="modal-overlay" onClick={() => setQrModalLink(null)}>
+          <div className="modal-content qr-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>QR Code for {qrModalLink.title}</h3>
+              <button className="modal-close" onClick={() => setQrModalLink(null)}>✕</button>
+            </div>
+            <div className="qr-container">
+              <QRCodeCanvas
+                value={`${window.location.origin}/link/${qrModalLink.slug}`}
+                size={300}
+                level="H"
+                includeMargin={true}
+                imageSettings={{
+                  src: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                      <text x="50" y="75" font-size="70" text-anchor="middle">🌀</text>
+                    </svg>
+                  `),
+                  height: 40,
+                  width: 40,
+                  excavate: true,
+                }}
+              />
+              <p className="qr-info">
+                <code>/link/{qrModalLink.slug}</code>
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button
+                className="submit-button"
+                onClick={() => handleDownloadQR(qrModalLink)}
+              >
+                Download PNG
+              </button>
+              <button
+                className="cancel-button"
+                onClick={() => setQrModalLink(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
